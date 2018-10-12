@@ -68,6 +68,20 @@ public class TestHiveStorage extends HiveTestBase {
   }
 
   @Test
+  public void readHiveView() throws Exception {
+    testBuilder()
+        .sqlQuery("SELECT * FROM hive.kv_view")
+        .ordered()
+        .baselineColumns("key", "value")
+        .baselineValues(5, " key_5")
+        .baselineValues(4, " key_4")
+        .baselineValues(3, " key_3")
+        .baselineValues(2, " key_2")
+        .baselineValues(1, " key_1")
+        .go();
+  }
+
+  @Test
   public void queryEmptyHiveTable() throws Exception {
     testBuilder()
         .sqlQuery("SELECT * FROM hive.empty_table")

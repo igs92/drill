@@ -17,6 +17,8 @@
  */
 package org.apache.drill.exec.store.hive;
 
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
 import org.apache.drill.shaded.guava.com.google.common.base.Strings;
 import io.netty.buffer.DrillBuf;
@@ -743,5 +745,26 @@ public class HiveUtilities {
     return newHiveConf;
   }
 
+
+  public static SqlTypeName getSqlTypeName(String hiveType){
+    switch (StringUtils.upperCase(hiveType)){
+      case "BINARY": return SqlTypeName.BINARY;
+      case "BOOLEAN": return SqlTypeName.BOOLEAN;
+      case "TINYINT": return SqlTypeName.TINYINT;
+      case "SMALLINT": return SqlTypeName.SMALLINT;
+      case "INT": return SqlTypeName.INTEGER;
+      case "BIGINT": return SqlTypeName.BIGINT;
+      case "FLOAT": return SqlTypeName.FLOAT;
+      case "DOUBLE": return SqlTypeName.DOUBLE;
+      case "DECIMAL": return SqlTypeName.DECIMAL;
+      case "TIMESTAMP": return SqlTypeName.TIMESTAMP;
+      case "DATE": return SqlTypeName.DATE;
+      case "STRING":
+      case "VARCHAR": return SqlTypeName.VARCHAR;
+      case "CHAR": return SqlTypeName.CHAR;
+      default: throwUnsupportedHiveDataTypeError(hiveType);
+    }
+    return SqlTypeName.ANY; // actually never returned
+  }
 }
 

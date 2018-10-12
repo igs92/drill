@@ -67,6 +67,17 @@ public class TestHiveDrillNativeParquetReader extends HiveTestBase {
   }
 
   @Test
+  public void testViewNativeReader() throws Exception {
+    String query = "select * from hive.kv_native_view where key > 1";
+
+    int actualRowCount = testSql(query);
+    assertEquals("Expected and actual row count should match", 2, actualRowCount);
+
+    testPlanMatchingPatterns(query,
+        new String[]{"HiveDrillNativeParquetScan", "numFiles=1"}, null);
+  }
+
+  @Test
   public void testFilterPushDownForExternalTable() throws Exception {
     String query = "select * from hive.kv_native_ext where key = 1";
 

@@ -171,6 +171,8 @@ public class HiveTestDataGenerator {
     executeQuery(hiveDriver, "CREATE TABLE IF NOT EXISTS default.kv(key INT, value STRING) " +
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE");
     executeQuery(hiveDriver, "LOAD DATA LOCAL INPATH '" + testDataFile + "' OVERWRITE INTO TABLE default.kv");
+    executeQuery(hiveDriver, "CREATE OR REPLACE VIEW default.kv_view AS SELECT * FROM default.kv ORDER BY `value` DESC");
+    executeQuery(hiveDriver, "CREATE OR REPLACE VIEW default.kv_view_view AS SELECT * FROM default.kv_view");
 
     // Create a (key, value) schema table in non-default database with RegexSerDe which is available in hive-contrib.jar
     // Table with RegExSerde is expected to have columns of STRING type only.
@@ -558,6 +560,10 @@ public class HiveTestDataGenerator {
     executeQuery(hiveDriver, "insert into table kv_native values (1, 3), (1, 4)");
     executeQuery(hiveDriver, "insert into table kv_native values (2, 5), (2, 6)");
     executeQuery(hiveDriver, "insert into table kv_native values (null, 9), (null, 10)");
+
+    // Create hive view
+    executeQuery(hiveDriver, "CREATE OR REPLACE VIEW kv_native_view AS " +
+        "SELECT * FROM kv_native");
 
     // Hive external table which has three partitions
 
