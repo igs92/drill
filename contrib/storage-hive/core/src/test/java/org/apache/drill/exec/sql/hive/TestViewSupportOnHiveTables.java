@@ -17,26 +17,31 @@
  */
 package org.apache.drill.exec.sql.hive;
 
-import org.apache.drill.shaded.guava.com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.drill.categories.HiveStorageTest;
 import org.apache.drill.categories.SlowTest;
 import org.apache.drill.exec.sql.TestBaseViewSupport;
-import org.apache.drill.exec.store.hive.HiveTestDataGenerator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import static org.apache.drill.exec.hive.HiveTestBase.HIVE_TEST_FIXTURE;
 import static org.apache.drill.exec.util.StoragePluginTestUtils.DFS_TMP_SCHEMA;
 
 @Category({SlowTest.class, HiveStorageTest.class})
 public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
-  protected static HiveTestDataGenerator hiveTest;
 
   @BeforeClass
-  public static void generateHive() throws Exception{
-    hiveTest = HiveTestDataGenerator.getInstance(dirTestWatcher);
-    hiveTest.addHiveTestPlugin(getDrillbitContext().getStorage());
+  public static void setUp() throws Exception {
+    HIVE_TEST_FIXTURE.getPluginManager().addHivePluginTo(bits);
+  }
+
+  @AfterClass
+  public static void tearDown() throws Exception {
+    HIVE_TEST_FIXTURE.getPluginManager().removeHivePluginFrom(bits);
   }
 
   @Test
@@ -47,7 +52,7 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         "SELECT * FROM hive.kv",
         "SELECT * FROM TEST_SCHEMA.TEST_VIEW_NAME LIMIT 1",
         new String[] { "key", "value"},
-        ImmutableList.of(new Object[] { 1, " key_1" })
+        rows(row( 1, " key_1" ))
     );
   }
 
@@ -58,8 +63,8 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         null,
         "SELECT * FROM hive.kv",
         "SELECT key, `value` FROM TEST_SCHEMA.TEST_VIEW_NAME LIMIT 1",
-        new String[] { "key", "value" },
-        ImmutableList.of(new Object[] { 1, " key_1" })
+        columnNames("key", "value"),
+        rows(row( 1, " key_1" ))
     );
   }
 
@@ -71,7 +76,7 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         "SELECT * FROM hive.kv",
         "SELECT `value` FROM TEST_SCHEMA.TEST_VIEW_NAME LIMIT 1",
         new String[] { "value" },
-        ImmutableList.of(new Object[] { " key_1" })
+        rows(row( " key_1" ))
     );
   }
 
@@ -82,8 +87,8 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         null,
         "SELECT key, `value` FROM hive.kv",
         "SELECT * FROM TEST_SCHEMA.TEST_VIEW_NAME LIMIT 1",
-        new String[] { "key", "value" },
-        ImmutableList.of(new Object[] { 1, " key_1" })
+        columnNames("key", "value"),
+        rows(row(1, " key_1"))
     );
   }
 
@@ -94,8 +99,8 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         null,
         "SELECT key, `value` FROM hive.kv",
         "SELECT key, `value` FROM TEST_SCHEMA.TEST_VIEW_NAME LIMIT 1",
-        new String[] { "key", "value" },
-        ImmutableList.of(new Object[] { 1, " key_1" })
+        columnNames("key", "value"),
+        rows(row( 1, " key_1" ))
     );
   }
 
@@ -110,11 +115,16 @@ public class TestViewSupportOnHiveTables extends TestBaseViewSupport {
         .go();
   }
 
-  @AfterClass
-  public static void cleanupHiveTestData() throws Exception{
-    if (hiveTest != null) {
-      hiveTest.deleteHiveTestPlugin(getDrillbitContext().getStorage());
-    }
+  private static String[] columnNames(String... names) {
+    return names;
+  }
+
+  private static Object[] row(Object... columns) {
+    return columns;
+  }
+
+  private static List<Object[]> rows(Object[]... rows) {
+    return Arrays.asList(rows);
   }
 
 }
