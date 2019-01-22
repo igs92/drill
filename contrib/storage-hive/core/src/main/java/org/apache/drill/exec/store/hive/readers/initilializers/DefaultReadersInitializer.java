@@ -31,6 +31,7 @@ import java.util.List;
 /**
  * Creates separate record reader for each given input split group.
  */
+// todo: (unused) replaced by ExperimentalReadersInitializer
 public class DefaultReadersInitializer extends AbstractReadersInitializer {
 
   public DefaultReadersInitializer(FragmentContext context, HiveSubScan config, Class<? extends HiveAbstractReader> readerClass) {

@@ -57,6 +57,7 @@ import org.apache.drill.shaded.guava.com.google.common.collect.Maps;
 
 import static org.apache.drill.exec.store.hive.HiveUtilities.throwUnsupportedHiveDataTypeError;
 
+// todo: (unused now) will be replaced by HiveValueWriterFactory and set of complex and primitive writers from package org.apache.drill.exec.store.hive.writers
 public abstract class HiveFieldConverter {
 
   public abstract void setSafeValue(ObjectInspector oi, Object hiveFieldValue, ValueVector outputVV, int outputIndex);

@@ -176,4 +176,12 @@ public class UnionListWriter extends AbstractFieldWriter {
   }
   </#if>
   </#list></#list>
+
+  public void writeNull(MinorType minorType) {
+    final int nextOffset = offsets.getAccessor().get(idx() + 1);
+    vector.getMutator().setNotNull(idx());
+    writer.setPosition(nextOffset);
+    ((AbstractFieldWriter)writer.getWriter(minorType)).writeNull();
+    offsets.getMutator().setSafe(idx() + 1, nextOffset + 1);
+  }
 }

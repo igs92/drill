@@ -23,6 +23,7 @@ import org.apache.drill.exec.store.hive.readers.HiveAbstractReader;
  * Parent class for records inspectors which responsible for counting of processed records
  * and managing free and used value holders.
  */
+// todo: try to remove this class, see notes in SkipFooterRecordsInspector
 public abstract class AbstractRecordsInspector {
 
   private int processedRecordCount;

@@ -69,6 +69,7 @@ import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 import org.apache.hadoop.security.UserGroupInformation;
 
 
+// todo: this class and all generated children will be replaced by  2 experimental readers
 public abstract class HiveAbstractReader extends AbstractRecordReader {
   protected static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(HiveAbstractReader.class);
 

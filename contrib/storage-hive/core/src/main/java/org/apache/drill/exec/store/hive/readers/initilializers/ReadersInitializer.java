@@ -35,6 +35,7 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+// todo: (unused) replaced by ExperimentalReadersInitializer
 public class ReadersInitializer {
 
   /**

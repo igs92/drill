@@ -15,29 +15,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.drill.exec.store.hive.readers.inspectors;
-
-/**
- * Default records inspector that uses the same value holder for each record.
- * Each value once written is immediately processed thus value holder can be re-used.
- */
-// todo: try to remove the class
-public class DefaultRecordsInspector extends AbstractRecordsInspector {
-
-  private final Object value;
-
-  public DefaultRecordsInspector(Object value) {
-    this.value = value;
-  }
-
-  @Override
-  public Object getValueHolder() {
-    return value;
-  }
-
-  @Override
-  public Object getNextValue() {
-    return value;
-  }
-
-}
+package org.apache.drill.exec.store.hive.writers;
+// todo: Document the package

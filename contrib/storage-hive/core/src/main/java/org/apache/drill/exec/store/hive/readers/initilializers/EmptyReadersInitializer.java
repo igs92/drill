@@ -29,6 +29,7 @@ import java.util.List;
 /**
  * If table is empty creates an empty record reader to output the schema.
  */
+// todo: (unused) replaced by ExperimentalReadersInitializer
 public class EmptyReadersInitializer extends AbstractReadersInitializer {
 
   public EmptyReadersInitializer(FragmentContext context, HiveSubScan config, Class<? extends HiveAbstractReader> readerClass) {

@@ -38,6 +38,7 @@ import java.util.List;
  * Holds common logic how to create reader constructor and reader instance.
  * Is responsible to ensure each child class implements logic for initializing record reader.
  */
+// todo: (unused) replaced by ExperimentalReadersInitializer
 public abstract class AbstractReadersInitializer {
 
   protected final HiveSubScan config;

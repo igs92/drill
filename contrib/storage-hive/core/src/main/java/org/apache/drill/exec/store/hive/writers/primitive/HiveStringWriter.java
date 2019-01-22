@@ -15,29 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.drill.exec.store.hive.readers.inspectors;
+package org.apache.drill.exec.store.hive.writers.primitive;
 
-/**
- * Default records inspector that uses the same value holder for each record.
- * Each value once written is immediately processed thus value holder can be re-used.
- */
-// todo: try to remove the class
-public class DefaultRecordsInspector extends AbstractRecordsInspector {
+import io.netty.buffer.DrillBuf;
+import org.apache.drill.exec.vector.complex.writer.VarCharWriter;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
 
-  private final Object value;
+public class HiveStringWriter extends AbstractSingleValueWriter<StringObjectInspector, VarCharWriter> {
 
-  public DefaultRecordsInspector(Object value) {
-    this.value = value;
+  private final DrillBuf drillBuf;
+
+  public HiveStringWriter(StringObjectInspector inspector, VarCharWriter writer, DrillBuf drillBuf) {
+    super(inspector, writer);
+    this.drillBuf = drillBuf;
   }
 
   @Override
-  public Object getValueHolder() {
-    return value;
-  }
-
-  @Override
-  public Object getNextValue() {
-    return value;
+  public void write(Object value) {
+    byte[] rawBytes = inspector.getPrimitiveWritableObject(value).getBytes();
+    drillBuf.setBytes(0, rawBytes);
+    writer.writeVarChar(0, rawBytes.length, drillBuf);
   }
 
 }

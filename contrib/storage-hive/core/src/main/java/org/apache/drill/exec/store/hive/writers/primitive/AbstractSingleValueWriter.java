@@ -15,29 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.drill.exec.store.hive.readers.inspectors;
+package org.apache.drill.exec.store.hive.writers.primitive;
+
+import org.apache.drill.exec.store.hive.writers.HiveValueWriter;
+import org.apache.drill.exec.vector.complex.writer.BaseWriter;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 
 /**
- * Default records inspector that uses the same value holder for each record.
- * Each value once written is immediately processed thus value holder can be re-used.
+ * Parent class for all primitive value writers
+ *
+ * @param <I> type of inspector
+ * @param <W> type of underlying vector writer
  */
-// todo: try to remove the class
-public class DefaultRecordsInspector extends AbstractRecordsInspector {
+public abstract class AbstractSingleValueWriter<I extends ObjectInspector, W extends BaseWriter> implements HiveValueWriter {
 
-  private final Object value;
+  protected final I inspector;
 
-  public DefaultRecordsInspector(Object value) {
-    this.value = value;
-  }
+  protected final W writer;
 
-  @Override
-  public Object getValueHolder() {
-    return value;
-  }
-
-  @Override
-  public Object getNextValue() {
-    return value;
+  public AbstractSingleValueWriter(I inspector, W writer) {
+    this.inspector = inspector;
+    this.writer = writer;
   }
 
 }
