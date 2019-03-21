@@ -31,7 +31,6 @@ public class Scan extends SourceOperator {
 
   @JsonCreator
   public Scan(@JsonProperty("storageengine") String storageEngine, @JsonProperty("selection") JSONOptions selection) {
-    super();
     this.storageEngine = storageEngine;
     this.selection = selection;
   }

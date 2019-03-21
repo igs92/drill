@@ -27,7 +27,7 @@ import java.util.Iterator;
 public abstract class SourceOperator extends LogicalOperatorBase{
 
   @Override
-  public Iterator<LogicalOperator> iterator() {
+  public final Iterator<LogicalOperator> iterator() {
       return Collections.emptyIterator();
   }
 

@@ -16,6 +16,60 @@
  * limitations under the License.
  */
 /**
- * Logical operators in a query graph.
+ * Logical operators in a query graph are contained in the package:
+ *
+ * <table>
+ *
+ * <tr>
+ * <th>Operator</th>
+ * <th>Description</th>
+ * </tr>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Scan}</td>
+ * <td>The Scan operator outputs a stream of records.</td>
+ * <tr/>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Values}</td>
+ * <td>The Values operator returns a constant result.</td>
+ * </tr>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Join}</td>
+ * <td>
+ * The Join operator joins two inputs based on one or more join conditions. The output of this operator is the combination of the two inputs.
+ * This is done by providing a combination record for each set of input records that matches all provided join conditions.
+ * </td>
+ * </tr>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Union}</td>
+ * <td>The Union operator combines two or more data inputs into a single stream.</td>
+ * </tr>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Store}</td>
+ * <td>The Store operator stores the stream output to a storage engine.</td>
+ * </tr>
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Project}</td>
+ * <td>
+ * The Project operator returns a particular fields subset of the incoming stream of data corresponding to the expressions provided.
+ * </td>
+ * </tr>
+ *
+ *
+ * <tr>
+ * <td>{@link org.apache.drill.common.logical.data.Order}</td>
+ * <td>
+ * The Order operator orders an input stream by one or more ordering expressions.
+ * </td>
+ * </tr>
+ * // TODO: finish doc based on https://docs.google.com/document/d/1QTL8warUYS2KjldQrGUse7zp8eA72VKtLOHwfXy6c7I/edit#heading=h.wefr69kgi76d
+ *
+ *
+ * </table>
  */
 package org.apache.drill.common.logical.data;

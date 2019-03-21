@@ -38,10 +38,6 @@ public abstract class LogicalOperatorBase implements LogicalOperator{
 
   private String memo;
 
-  @Override
-  public final int hashCode() {
-    return super.hashCode();
-  }
 
   @Override
   public void setupAndValidate(List<LogicalOperator> operators, Collection<ValidationError> errors) {

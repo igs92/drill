@@ -17,18 +17,15 @@
  */
 package org.apache.drill.common.logical.data;
 
-import org.apache.drill.shaded.guava.com.google.common.collect.Iterators;
-import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
-import org.apache.drill.common.expression.FieldReference;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.apache.drill.common.expression.FieldReference;
 import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.logical.data.visitors.LogicalVisitor;
-
-import java.util.Iterator;
-import java.util.List;
+import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 
 import static org.apache.drill.shaded.guava.com.google.common.base.Preconditions.checkState;
 
@@ -80,12 +77,8 @@ public class Window extends SingleInputOperator {
     return logicalVisitor.visitWindow(this, value);
   }
 
-  @Override
-  public Iterator<LogicalOperator> iterator() {
-    return Iterators.singletonIterator(getInput());
-  }
+  public static class Builder extends AbstractSingleBuilder<Window, Builder> {
 
-  public static class Builder extends AbstractSingleBuilder<Window, Builder>{
     private List<NamedExpression> aggregations = Lists.newArrayList();
     private List<NamedExpression> withins = Lists.newArrayList();
     private List<Order.Ordering> orderings = Lists.newArrayList();
@@ -93,7 +86,7 @@ public class Window extends SingleInputOperator {
     private long end = Long.MIN_VALUE;
 
 
-    public Builder addAggregation(FieldReference ref, LogicalExpression expr){
+    public Builder addAggregation(FieldReference ref, LogicalExpression expr) {
       aggregations.add(new NamedExpression(expr, ref));
       return this;
     }
@@ -114,5 +107,7 @@ public class Window extends SingleInputOperator {
       orderings.add(ordering);
       return this;
     }
+
   }
+
 }
