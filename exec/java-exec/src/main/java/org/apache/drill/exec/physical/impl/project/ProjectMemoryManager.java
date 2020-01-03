@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.common.types.TypeProtos.MajorType;
-import org.apache.drill.common.types.TypeProtos.MinorType;
+import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.expr.TypeHelper;
 import org.apache.drill.exec.physical.impl.project.OutputWidthExpression.VarLenReadExpr;
 import org.apache.drill.exec.record.RecordBatch;
@@ -48,11 +48,11 @@ import java.util.Map;
  * ProjectRecordBatch. The PMM works as follows:
  * <p>
  * Setup phase: As and when ProjectRecordBatch creates or transfers a field, it
- * registers the field with PMM. If the field is a variable width field, PMM
- * records the expression that produces the variable width field. The expression
+ * registers the field with PMM. If the field is a variable-width field, PMM
+ * records the expression that produces the variable-width field. The expression
  * is a tree of LogicalExpressions. The PMM walks this tree of
  * LogicalExpressions to produce a tree of OutputWidthExpressions. The widths of
- * Fixed width fields are just accumulated into a single total. Note: The PMM,
+ * fixed-width fields are just accumulated into a single total. Note: The PMM,
  * currently, cannot handle new complex fields, it just uses a hard-coded
  * estimate for such fields.
  * <p>
@@ -63,13 +63,32 @@ import java.util.Map;
  */
 public class ProjectMemoryManager extends RecordBatchMemoryManager {
 
-  static final Logger logger = LoggerFactory.getLogger(ProjectMemoryManager.class);
+  private static final Logger logger = LoggerFactory.getLogger(ProjectMemoryManager.class);
+
+  private enum OutputColumnType {
+      TRANSFER,
+      NEW
+  }
+
+  public static class VariableWidthColumnInfo {
+    private final OutputWidthExpression outputExpression;
+    private final ValueVector outputVV; // for transfers, this is the transfer src
+
+
+    VariableWidthColumnInfo(OutputWidthExpression outputWidthExpression,
+                    ValueVector outputVV) {
+      this.outputExpression = outputWidthExpression;
+      this.outputVV = outputVV;
+    }
+
+    public OutputWidthExpression getOutputExpression() { return outputExpression; }
+  }
 
   private RecordBatch incomingBatch;
   private ProjectRecordBatch outgoingBatch;
 
   private int rowWidth;
-  private final Map<String, ColumnWidthInfo> outputColumnSizes;
+  private final Map<String, VariableWidthColumnInfo> varWidthColumnSizes;
   // Number of variable width columns in the batch
   private int variableWidthColumnCount;
   // Number of fixed width columns in the batch
@@ -83,50 +102,18 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
   // Currently, this is just a guess
   private int totalComplexColumnWidth;
 
-  private enum WidthType {
-      FIXED,
-      VARIABLE
+  public ProjectMemoryManager(int configuredOutputSize) {
+    super(configuredOutputSize);
+    varWidthColumnSizes = new HashMap<>();
   }
 
-  public enum OutputColumnType {
-      TRANSFER,
-      NEW
-  }
+  private void reset() {
+    rowWidth = 0;
+    totalFixedWidthColumnWidth = 0;
+    totalComplexColumnWidth = 0;
 
-  public static class ColumnWidthInfo {
-    private final OutputWidthExpression outputExpression;
-    private final int width;
-    private final WidthType widthType;
-    private final OutputColumnType outputColumnType;
-    private final ValueVector outputVV; // for transfers, this is the transfer src
-
-
-    ColumnWidthInfo(OutputWidthExpression outputWidthExpression,
-                    OutputColumnType outputColumnType,
-                    WidthType widthType,
-                    int fieldWidth, ValueVector outputVV) {
-      this.outputExpression = outputWidthExpression;
-      this.width = fieldWidth;
-      this.outputColumnType = outputColumnType;
-      this.widthType = widthType;
-      this.outputVV = outputVV;
-    }
-
-    public OutputWidthExpression getOutputExpression() { return outputExpression; }
-
-    public OutputColumnType getOutputColumnType() { return outputColumnType; }
-
-    public boolean isFixedWidth() { return widthType == WidthType.FIXED; }
-
-    public int getWidth() { return width; }
-  }
-
-  public RecordBatch getIncomingBatch() {
-    return incomingBatch;
-  }
-
-  void ShouldNotReachHere() {
-    throw new IllegalStateException();
+    fixedWidthColumnCount = 0;
+    complexColumnsCount = 0;
   }
 
   private void setIncomingBatch(RecordBatch recordBatch) {
@@ -139,61 +126,39 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
     this.outgoingBatch = outgoingBatch;
   }
 
-  public ProjectMemoryManager(int configuredOutputSize) {
-    super(configuredOutputSize);
-    outputColumnSizes = new HashMap<>();
-  }
-
   public boolean isComplex(MajorType majorType) {
-    MinorType minorType = majorType.getMinorType();
-    return minorType == MinorType.MAP || minorType == MinorType.UNION || minorType == MinorType.LIST;
+    return Types.isComplex(majorType) || Types.isUnion(majorType);
   }
 
-  boolean isFixedWidth(TypedFieldId fieldId) {
+  public boolean isFixedWidth(TypedFieldId fieldId) {
     ValueVector vv = getOutgoingValueVector(fieldId);
     return isFixedWidth(vv);
   }
 
-  public ValueVector getOutgoingValueVector(TypedFieldId fieldId) {
+  private ValueVector getOutgoingValueVector(TypedFieldId fieldId) {
     Class<?> clazz = fieldId.getIntermediateClass();
     int[] fieldIds = fieldId.getFieldIds();
     return outgoingBatch.getValueAccessorById(clazz, fieldIds).getValueVector();
   }
 
-  static boolean isFixedWidth(ValueVector vv) {  return (vv instanceof FixedWidthVector); }
+  private static boolean isFixedWidth(ValueVector vv) {  return (vv instanceof FixedWidthVector); }
 
 
-  static int getNetWidthOfFixedWidthType(ValueVector vv) {
-    assert isFixedWidth(vv);
-    return ((FixedWidthVector)vv).getValueWidth();
-  }
-
-  public static int getDataWidthOfFixedWidthType(TypeProtos.MajorType majorType) {
-    MinorType minorType = majorType.getMinorType();
-    final boolean isVariableWidth  = (minorType == MinorType.VARCHAR || minorType == MinorType.VAR16CHAR
-            || minorType == MinorType.VARBINARY);
-
-    if (isVariableWidth) {
-      throw new IllegalArgumentException("getWidthOfFixedWidthType() cannot handle variable width types");
-    }
-
-    if (minorType == MinorType.NULL) {
-      return 0;
-    }
-
+  public static int getFixedWidth(TypeProtos.MajorType majorType) {
+    Preconditions.checkArgument(!Types.isVarWidthType(majorType.getMinorType()),
+        "Expected fixed type but was '%s'.", majorType.getMinorType());
     return TypeHelper.getSize(majorType);
   }
 
-
-  void addTransferField(ValueVector vvIn, String inputColumnName, String outputColumnName) {
+  public void addTransferField(ValueVector vvIn, String inputColumnName, String outputColumnName) {
     addField(vvIn, null, OutputColumnType.TRANSFER, inputColumnName, outputColumnName);
   }
 
-  void addNewField(ValueVector vvOut, LogicalExpression logicalExpression) {
+  public void addNewField(ValueVector vvOut, LogicalExpression logicalExpression) {
     addField(vvOut, logicalExpression, OutputColumnType.NEW, null, vvOut.getField().getName());
   }
 
-  void addField(ValueVector vv, LogicalExpression logicalExpression, OutputColumnType outputColumnType,
+  private void addField(ValueVector vv, LogicalExpression logicalExpression, OutputColumnType outputColumnType,
                 String inputColumnName, String outputColumnName) {
     if(isFixedWidth(vv)) {
       addFixedWidthField(vv);
@@ -206,53 +171,52 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
                                      OutputColumnType outputColumnType, String inputColumnName,
                                      String outputColumnName) {
     variableWidthColumnCount++;
-    ColumnWidthInfo columnWidthInfo;
     logger.trace("addVariableWidthField(): vv {} totalCount: {} outputColumnType: {}",
-            printVV(vv), variableWidthColumnCount, outputColumnType);
-    // Variable width transfers
+            vvAsString(vv), variableWidthColumnCount, outputColumnType);
+    OutputWidthExpression outWidthExpr;
     if (outputColumnType == OutputColumnType.TRANSFER) {
-      VarLenReadExpr readExpr = new VarLenReadExpr(inputColumnName);
-      columnWidthInfo = new ColumnWidthInfo(readExpr, outputColumnType,
-              WidthType.VARIABLE, -1, vv); //fieldWidth has to be obtained from the RecordBatchSizer
-    } else if (isComplex(vv.getField().getType())) {
-      addComplexField(vv);
-      return;
+      // Variable width transfers
+      // fieldWidth has to be obtained from the RecordBatchSizer
+      outWidthExpr = new VarLenReadExpr(inputColumnName);
     } else {
+      // fieldWidth has to be obtained from the OutputWidthExpression
       // Walk the tree of LogicalExpressions to get a tree of OutputWidthExpressions
-      OutputWidthVisitorState state = new OutputWidthVisitorState(this);
-      OutputWidthExpression outputWidthExpression = logicalExpression.accept(new OutputWidthVisitor(), state);
-      columnWidthInfo = new ColumnWidthInfo(outputWidthExpression, outputColumnType,
-              WidthType.VARIABLE, -1, vv); //fieldWidth has to be obtained from the OutputWidthExpression
+       outWidthExpr = logicalExpression.accept(new OutputWidthVisitor(),
+          new OutputWidthVisitorState(this));
     }
-    ColumnWidthInfo existingInfo = outputColumnSizes.put(outputColumnName, columnWidthInfo);
+    VariableWidthColumnInfo columnWidthInfo = new VariableWidthColumnInfo(outWidthExpr, vv);
+    VariableWidthColumnInfo existingInfo = varWidthColumnSizes.put(outputColumnName, columnWidthInfo);
     Preconditions.checkState(existingInfo == null);
   }
 
-  public static String printVV(ValueVector vv) {
-    String str = "null";
-    if (vv != null) {
-      str = vv.getField().getName() + " " + vv.getField().getType();
-    }
-    return str;
+  private static String vvAsString(ValueVector vv) {
+    return vv == null ? "null" :
+      String.format("%s %s",
+          vv.getField().getName(),
+          vv.getField().getType());
   }
 
-  void addComplexField(ValueVector vv) {
+  public void addComplexField(ValueVector vv) {
     //Complex types are not yet supported. Just use a guess for the size
     assert vv == null || isComplex(vv.getField().getType());
     complexColumnsCount++;
     // just a guess
     totalComplexColumnWidth +=  OutputSizeEstimateConstants.COMPLEX_FIELD_ESTIMATE;
-    logger.trace("addComplexField(): vv {} totalCount: {} totalComplexColumnWidth: {}",
-            printVV(vv), complexColumnsCount, totalComplexColumnWidth);
+    if (logger.isTraceEnabled()) {
+      logger.trace("addComplexField(): vv {} totalCount: {} totalComplexColumnWidth: {}",
+            vvAsString(vv), complexColumnsCount, totalComplexColumnWidth);
+    }
   }
 
-  void addFixedWidthField(ValueVector vv) {
+  private void addFixedWidthField(ValueVector vv) {
     assert isFixedWidth(vv);
     fixedWidthColumnCount++;
-    int fixedFieldWidth = getNetWidthOfFixedWidthType(vv);
+    int fixedFieldWidth = ((FixedWidthVector) vv).getValueWidth();
     totalFixedWidthColumnWidth += fixedFieldWidth;
-    logger.trace("addFixedWidthField(): vv {} totalCount: {} totalComplexColumnWidth: {}",
-            printVV(vv), fixedWidthColumnCount, totalFixedWidthColumnWidth);
+    if (logger.isTraceEnabled()) {
+      logger.trace("addFixedWidthField(): vv {} totalCount: {} totalComplexColumnWidth: {}",
+              vvAsString(vv), fixedWidthColumnCount, totalFixedWidthColumnWidth);
+    }
   }
 
   public void init(RecordBatch incomingBatch, ProjectRecordBatch outgoingBatch) {
@@ -264,15 +228,6 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
       getOutputBatchSize());
   }
 
-  private void reset() {
-    rowWidth = 0;
-    totalFixedWidthColumnWidth = 0;
-    totalComplexColumnWidth = 0;
-
-    fixedWidthColumnCount = 0;
-    complexColumnsCount = 0;
-  }
-
   @Override
   public void update() {
     long updateStartTime = System.currentTimeMillis();
@@ -282,26 +237,21 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
     setRecordBatchSizer(batchSizer);
     rowWidth = 0;
     int totalVariableColumnWidth = 0;
-    for (String outputColumnName : outputColumnSizes.keySet()) {
-      ColumnWidthInfo columnWidthInfo = outputColumnSizes.get(outputColumnName);
+    for (String outputColumnName : varWidthColumnSizes.keySet()) {
+      VariableWidthColumnInfo columnWidthInfo = varWidthColumnSizes.get(outputColumnName);
       int width = -1;
-      if (columnWidthInfo.isFixedWidth()) {
-        // fixed width columns are accumulated in totalFixedWidthColumnWidth
-        ShouldNotReachHere();
-      } else {
-        //Walk the tree of OutputWidthExpressions to get a FixedLenExpr
-        //As the tree is walked, the RecordBatchSizer and function annotations
-        //are looked-up to come up with the final FixedLenExpr
-        OutputWidthExpression savedWidthExpr = columnWidthInfo.getOutputExpression();
-        OutputWidthVisitorState state = new OutputWidthVisitorState(this);
-        OutputWidthExpression reducedExpr = savedWidthExpr.accept(new OutputWidthVisitor(), state);
-        width = ((FixedLenExpr)reducedExpr).getDataWidth();
-        Preconditions.checkState(width >= 0);
-        int metadataWidth = getMetadataWidth(columnWidthInfo.outputVV);
-        logger.trace("update(): fieldName {} width: {} metadataWidth: {}",
-                columnWidthInfo.outputVV.getField().getName(), width, metadataWidth);
-        width += metadataWidth;
-      }
+      //Walk the tree of OutputWidthExpressions to get a FixedLenExpr
+      //As the tree is walked, the RecordBatchSizer and function annotations
+      //are looked-up to come up with the final FixedLenExpr
+      OutputWidthExpression savedWidthExpr = columnWidthInfo.getOutputExpression();
+      OutputWidthVisitorState state = new OutputWidthVisitorState(this);
+      OutputWidthExpression reducedExpr = savedWidthExpr.accept(new OutputWidthVisitor(), state);
+      width = ((FixedLenExpr)reducedExpr).getDataWidth();
+      Preconditions.checkState(width >= 0);
+      int metadataWidth = getMetadataWidth(columnWidthInfo.outputVV);
+      logger.trace("update(): fieldName {} width: {} metadataWidth: {}",
+              columnWidthInfo.outputVV.getField().getName(), width, metadataWidth);
+      width += metadataWidth;
       totalVariableColumnWidth += width;
     }
     rowWidth += totalFixedWidthColumnWidth;
@@ -309,7 +259,7 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
     rowWidth += totalVariableColumnWidth;
     int outPutRowCount;
     if (rowWidth != 0) {
-      //if rowWidth is not zero, set the output row count in the sizer
+      // if rowWidth is not zero, set the output row count in the sizer
       setOutputRowCount(getOutputBatchSize(), rowWidth);
       // if more rows can be allowed than the incoming row count, then set the
       // output row count to the incoming row count.
@@ -334,19 +284,22 @@ public class ProjectMemoryManager extends RecordBatchMemoryManager {
     updateIncomingStats();
   }
 
+  // TODO: Move this logic to TypesHelper or the ValueVector so it
+  // is more generic and reusable.
   public static int getMetadataWidth(ValueVector vv) {
     int width = 0;
     if (vv instanceof NullableVector) {
-      width += ((NullableVector)vv).getBitsVector().getPayloadByteCount(1);
+      width += ((NullableVector) vv).getBitsVector().getPayloadByteCount(1);
     }
 
     if (vv instanceof VariableWidthVector) {
-      width += ((VariableWidthVector)vv).getOffsetVector().getPayloadByteCount(1);
+      width += ((VariableWidthVector) vv).getOffsetVector().getPayloadByteCount(1);
     }
 
     if (vv instanceof BaseRepeatedValueVector) {
-      width += ((BaseRepeatedValueVector)vv).getOffsetVector().getPayloadByteCount(1);
-      width += (getMetadataWidth(((BaseRepeatedValueVector)vv).getDataVector()) * RepeatedValueVector.DEFAULT_REPEAT_PER_RECORD);
+      width += ((BaseRepeatedValueVector) vv).getOffsetVector().getPayloadByteCount(1);
+      width += (getMetadataWidth(((BaseRepeatedValueVector) vv).getDataVector()) *
+          RepeatedValueVector.DEFAULT_REPEAT_PER_RECORD);
     }
     return width;
   }
