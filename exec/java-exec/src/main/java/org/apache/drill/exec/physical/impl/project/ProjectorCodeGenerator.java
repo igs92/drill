@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.project;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,14 +37,16 @@ import org.apache.drill.common.expression.fn.FunctionReplacementUtils;
 import org.apache.drill.common.logical.data.NamedExpression;
 import org.apache.drill.common.types.Types;
 import org.apache.drill.common.types.TypeProtos.MinorType;
+import org.apache.drill.exec.exception.ClassTransformationException;
 import org.apache.drill.exec.exception.SchemaChangeException;
 import org.apache.drill.exec.expr.ClassGenerator;
+import org.apache.drill.exec.expr.CodeGenerator;
 import org.apache.drill.exec.expr.DrillFuncHolderExpr;
 import org.apache.drill.exec.expr.ExpressionTreeMaterializer;
 import org.apache.drill.exec.expr.ValueVectorReadExpression;
 import org.apache.drill.exec.expr.ValueVectorWriteExpression;
 import org.apache.drill.exec.expr.fn.FunctionLookupContext;
-import org.apache.drill.exec.physical.impl.project.ProjectRecordBatch.VectorState;
+import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.planner.StarColumnHelper;
 import org.apache.drill.exec.record.MaterializedField;
 import org.apache.drill.exec.record.RecordBatch;
@@ -62,7 +65,7 @@ import com.carrotsearch.hppc.IntHashSet;
  * with the {@link VectorState} to create required vectors, writers and so on.
  * Populates the code generator with the "projector" expressions.
  */
-class ProjectionMaterializer {
+class ProjectorCodeGenerator {
 
   private static final String EMPTY_STRING = "";
 
@@ -94,16 +97,16 @@ class ProjectionMaterializer {
   private final ErrorCollector collector = new ErrorCollectorImpl();
   private final ColumnExplorer columnExplorer;
   private final IntHashSet transferFieldIds = new IntHashSet();
-  private final ProjectionMaterializer.ClassifierResult result = new ClassifierResult();
+  private final ProjectorCodeGenerator.ClassifierResult result = new ClassifierResult();
   private boolean isAnyWildcard;
   private boolean classify;
 
-  public ProjectionMaterializer(OptionManager options,
-      ClassGenerator<Projector> cg, RecordBatch incomingBatch,
-      List<NamedExpression> exprSpec,
-      FunctionLookupContext functionLookupContext, VectorState vectorState,
-      boolean unionTypeEnabled) {
-    this.cg = cg;
+  public ProjectorCodeGenerator(OptionManager options,
+                                RecordBatch incomingBatch,
+                                List<NamedExpression> exprSpec,
+                                FunctionLookupContext functionLookupContext, VectorState vectorState,
+                                boolean unionTypeEnabled) {
+    this.cg = CodeGenerator.getRoot(Projector.TEMPLATE_DEFINITION, options);
     this.incomingBatch = incomingBatch;
     this.exprSpec = exprSpec;
     this.functionLookupContext = functionLookupContext;
@@ -112,7 +115,7 @@ class ProjectionMaterializer {
     columnExplorer = new ColumnExplorer(options);
   }
 
-  public void setup() throws SchemaChangeException {
+  public void setupProjectExpressions() throws SchemaChangeException {
     List<NamedExpression> exprs = exprSpec != null ? exprSpec
         : inferExpressions();
     isAnyWildcard = isAnyWildcard(exprs);
@@ -121,6 +124,14 @@ class ProjectionMaterializer {
     for (NamedExpression namedExpression : exprs) {
       setupExpression(namedExpression);
     }
+  }
+
+  public Projector getImplementation(FragmentContext ctx) throws IOException, ClassTransformationException {
+    CodeGenerator<Projector> codeGen = cg.getCodeGenerator();
+    codeGen.plainJavaCapable(true);
+    // Uncomment out this line to debug the generated code.
+    // codeGen.saveCodeForDebugging(true);
+    return ctx.getImplementationClass(codeGen);
   }
 
   private List<NamedExpression> inferExpressions() {
@@ -346,7 +357,7 @@ class ProjectionMaterializer {
   }
 
   private void classifyExpr(NamedExpression ex, RecordBatch incoming,
-      ProjectionMaterializer.ClassifierResult result) {
+      ProjectorCodeGenerator.ClassifierResult result) {
     NameSegment expr = ((SchemaPath) ex.getExpr()).getRootSegment();
     NameSegment ref = ex.getRef().getRootSegment();
     boolean exprHasPrefix = expr.getPath()
@@ -546,7 +557,7 @@ class ProjectionMaterializer {
   }
 
   private String getUniqueName(String name,
-      ProjectionMaterializer.ClassifierResult result) {
+      ProjectorCodeGenerator.ClassifierResult result) {
     Integer currentSeq = (Integer) result.sequenceMap.get(name);
     if (currentSeq == null) { // name is unique, so return the original name
       result.sequenceMap.put(name, -1);
@@ -577,7 +588,7 @@ class ProjectionMaterializer {
    *          output name unique
    */
   private void addToResultMaps(String origName,
-      ProjectionMaterializer.ClassifierResult result,
+      ProjectorCodeGenerator.ClassifierResult result,
       boolean allowDupsWithRename) {
     String name = origName;
     if (allowDupsWithRename) {
