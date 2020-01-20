@@ -111,6 +111,14 @@ abstract class NestedConfig implements Config {
     return c.getString(path);
   }
 
+  public String getString(String path, String defaultValue) {
+    String value = hasPath(path) ? getString(path) : null;
+    if (value == null || (value = value.trim()).isEmpty()) {
+      return defaultValue;
+    }
+    return value;
+  }
+
   @Override
   public ConfigObject getObject(String path) {
     return c.getObject(path);

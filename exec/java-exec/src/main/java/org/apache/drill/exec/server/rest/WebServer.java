@@ -425,6 +425,10 @@ public class WebServer implements AutoCloseable {
       sslContextFactory.setKeyStorePassword(keyStorePasswd);
     }
 
+    // SSL protocol
+    String sslProtocol = config.getString(ExecConstants.SSL_PROTOCOL, SSLConfig.DEFAULT_SSL_PROTOCOL);
+    sslContextFactory.setIncludeProtocols(sslProtocol);
+
     final HttpConfiguration httpsConfig = baseHttpConfig();
     httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
@@ -434,7 +438,6 @@ public class WebServer implements AutoCloseable {
         new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
         new HttpConnectionFactory(httpsConfig));
     sslConnector.setPort(port);
-
     return sslConnector;
   }
 
