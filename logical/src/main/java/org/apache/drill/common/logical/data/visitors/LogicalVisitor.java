@@ -39,32 +39,29 @@ import org.apache.drill.common.logical.data.Writer;
 
 /**
  * Visitor class designed to traversal of a operator tree.  Basis for a number of operator manipulations including fragmentation and materialization.
- * @param <RETURN> The class associated with the return of each visit method.
- * @param <EXTRA> The class object associated with additional data required for a particular operator modification.
- * @param <EXCEP> An optional exception class that can be thrown when a portion of a modification or traversal fails.  Must extend Throwable.  In the case where the visitor does not throw any caught exception, this can be set as RuntimeException.
+ * @param <R> The class associated with the return of each visit method.
+ * @param <V> The class object associated with additional data required for a particular operator modification.
+ * @param <T> An optional exception class that can be thrown when a portion of a modification or traversal fails.  Must extend Throwable.  In the case where the visitor does not throw any caught exception, this can be set as RuntimeException.
  */
-public interface LogicalVisitor<RETURN, EXTRA, EXCEP extends Throwable> {
-    static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LogicalVisitor.class);
+public interface LogicalVisitor<R, V, T extends Throwable> {
+    org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LogicalVisitor.class);
 
-
-    public RETURN visitScan(Scan scan, EXTRA value) throws EXCEP;
-    public RETURN visitStore(Store store, EXTRA value) throws EXCEP;
-    public RETURN visitGroupingAggregate(GroupingAggregate groupBy, EXTRA value) throws EXCEP;
-    public RETURN visitFilter(Filter filter, EXTRA value) throws EXCEP;
-    public RETURN visitFlatten(Flatten flatten, EXTRA value) throws EXCEP;
-    public RETURN visitAnalyze(Analyze analyze, EXTRA value) throws EXCEP;
-
-    public RETURN visitProject(Project project, EXTRA value) throws EXCEP;
-    public RETURN visitValues(Values constant, EXTRA value) throws EXCEP;
-    public RETURN visitOrder(Order order, EXTRA value) throws EXCEP;
-    public RETURN visitJoin(Join join, EXTRA value) throws EXCEP;
-    public RETURN visitLimit(Limit limit, EXTRA value) throws EXCEP;
-    public RETURN visitRunningAggregate(RunningAggregate runningAggregate, EXTRA value) throws EXCEP;
-    public RETURN visitTransform(Transform transform, EXTRA value) throws EXCEP;
-    public RETURN visitUnion(Union union, EXTRA value) throws EXCEP;
-    public RETURN visitWindow(Window window, EXTRA value) throws EXCEP;
-    public RETURN visitWriter(Writer writer, EXTRA value) throws EXCEP;
-
-    public RETURN visitUnnest(Unnest unnest, EXTRA value) throws EXCEP;
-    public RETURN visitLateralJoin(LateralJoin lateralJoin, EXTRA value) throws EXCEP;
+    R visitScan(Scan scan, V value) throws T;
+    R visitStore(Store store, V value) throws T;
+    R visitGroupingAggregate(GroupingAggregate groupBy, V value) throws T;
+    R visitFilter(Filter filter, V value) throws T;
+    R visitFlatten(Flatten flatten, V value) throws T;
+    R visitAnalyze(Analyze analyze, V value) throws T;
+    R visitProject(Project project, V value) throws T;
+    R visitValues(Values constant, V value) throws T;
+    R visitOrder(Order order, V value) throws T;
+    R visitJoin(Join join, V value) throws T;
+    R visitLimit(Limit limit, V value) throws T;
+    R visitRunningAggregate(RunningAggregate runningAggregate, V value) throws T;
+    R visitTransform(Transform transform, V value) throws T;
+    R visitUnion(Union union, V value) throws T;
+    R visitWindow(Window window, V value) throws T;
+    R visitWriter(Writer writer, V value) throws T;
+    R visitUnnest(Unnest unnest, V value) throws T;
+    R visitLateralJoin(LateralJoin lateralJoin, V value) throws T;
 }

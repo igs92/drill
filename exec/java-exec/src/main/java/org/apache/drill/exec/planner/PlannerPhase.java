@@ -18,6 +18,7 @@
 package org.apache.drill.exec.planner;
 
 import org.apache.drill.exec.planner.logical.ConvertMetadataAggregateToDirectScanRule;
+import org.apache.drill.exec.planner.logical.DrillIntersectRule;
 import org.apache.drill.exec.planner.physical.MetadataAggPrule;
 import org.apache.drill.exec.planner.physical.MetadataControllerPrule;
 import org.apache.drill.exec.planner.physical.MetadataHandlerPrule;
@@ -351,7 +352,9 @@ public enum PlannerPhase {
       DrillUnionAllRule.INSTANCE,
       DrillValuesRule.INSTANCE,
       DrillUnnestRule.INSTANCE,
-      DrillCorrelateRule.INSTANCE
+      DrillCorrelateRule.INSTANCE,
+
+      DrillIntersectRule.INSTANCE
       ).build();
 
   /**

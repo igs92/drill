@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.config.LogicalPlanPersistence;
@@ -78,25 +79,15 @@ public class StoragePlugins implements Iterable<Map.Entry<String, StoragePluginC
   }
 
   private String toString(Collection<?> collection, int maxLen) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("[");
-    int i = 0;
-    for (Iterator<?> iterator = collection.iterator(); iterator.hasNext() && i < maxLen; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      builder.append(iterator.next());
-    }
-    builder.append("]");
-    return builder.toString();
+    return collection.stream()
+        .limit(maxLen)
+        .map(String::valueOf)
+        .collect(Collectors.joining(",", "[", "]"));
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof StoragePlugins)) {
-      return false;
-    }
-    return storage.equals(((StoragePlugins) obj).getStorage());
+    return obj instanceof StoragePlugins && storage.equals(((StoragePlugins) obj).getStorage());
   }
 
   /**

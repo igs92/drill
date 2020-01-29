@@ -29,7 +29,6 @@ import org.apache.drill.exec.ExecConstants;
 import org.apache.drill.exec.ops.ExecutorFragmentContext;
 import org.apache.drill.exec.physical.base.FragmentRoot;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
-import org.apache.drill.exec.physical.impl.validate.IteratorValidatorInjector;
 import org.apache.drill.exec.record.CloseableRecordBatch;
 import org.apache.drill.exec.record.RecordBatch;
 import org.apache.drill.exec.util.AssertionUtil;
@@ -80,7 +79,8 @@ public class ImplCreator {
     if (AssertionUtil.isAssertionsEnabled() ||
         context.getOptions().getOption(ExecConstants.ENABLE_ITERATOR_VALIDATOR) ||
         context.getConfig().getBoolean(ExecConstants.ENABLE_ITERATOR_VALIDATION)) {
-      root = IteratorValidatorInjector.rewritePlanWithIteratorValidator(context, root);
+// todo: uncomment, done for simpler tests debugging.
+//      root = IteratorValidatorInjector.rewritePlanWithIteratorValidator(context, root);
     }
 
     final ImplCreator creator = new ImplCreator();
