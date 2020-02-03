@@ -54,6 +54,11 @@ public interface Prel extends DrillRelNode, Iterable<Prel> {
    * A Prel's own SelectionVector mode - i.e whether it generates an SV2, SV4 or None
    */
   SelectionVectorMode getEncoding();
+
+  /**
+   * Tells whether column reordering is necessary prior to return result to a user.
+   * @see org.apache.drill.exec.planner.physical.visitor.FinalColumnReorderer
+   */
   boolean needsFinalColumnReordering();
 
   /**

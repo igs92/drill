@@ -18,6 +18,7 @@
 package org.apache.drill.common.logical.data.visitors;
 
 
+import org.apache.drill.common.logical.data.Intersect;
 import org.apache.drill.common.logical.data.LateralJoin;
 import org.apache.drill.common.logical.data.Unnest;
 import org.apache.drill.common.logical.data.Analyze;
@@ -64,4 +65,5 @@ public interface LogicalVisitor<R, V, T extends Throwable> {
     R visitWriter(Writer writer, V value) throws T;
     R visitUnnest(Unnest unnest, V value) throws T;
     R visitLateralJoin(LateralJoin lateralJoin, V value) throws T;
+    R visitIntersect(Intersect intersect, V value) throws T;
 }

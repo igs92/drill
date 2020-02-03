@@ -15,35 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.drill.exec.planner.logical;
+package org.apache.drill.exec.planner.common;
 
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
-import org.apache.drill.common.logical.data.Intersect.Builder;
-import org.apache.drill.common.logical.data.LogicalOperator;
-import org.apache.drill.exec.planner.common.DrillIntersectRelBase;
+import org.apache.calcite.rel.core.Intersect;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
-public class DrillIntersectRel extends DrillIntersectRelBase implements DrillRel {
-
-  public DrillIntersectRel(RelOptCluster cluster, RelTraitSet traits, List<RelNode> inputs, boolean all) {
+/**
+ * Base class for logical and physical Intersect implemented in Drill
+ */
+public abstract class DrillIntersectRelBase extends Intersect implements DrillRelNode {
+  public DrillIntersectRelBase(RelOptCluster cluster, RelTraitSet traits, List<RelNode> inputs, boolean all) {
     super(cluster, traits, inputs, all);
-  }
-
-  @Override
-  public LogicalOperator implement(DrillImplementor implementor) {
-    Builder builder = org.apache.drill.common.logical.data.Intersect.builder();
-    IntStream.range(0, inputs.size())
-        .mapToObj(ord -> implementor.visitChild(this, ord, inputs.get(ord)))
-        .forEach(builder::addInput);
-    return builder.all(all).build();
-  }
-
-  @Override
-  public DrillIntersectRel copy(RelTraitSet traitSet, List<RelNode> inputs, boolean all) {
-    return new DrillIntersectRel(getCluster(), traitSet, inputs, all);
   }
 }

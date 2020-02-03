@@ -23,6 +23,7 @@ import org.apache.drill.exec.physical.config.FlattenPOP;
 import org.apache.drill.exec.physical.config.HashAggregate;
 import org.apache.drill.exec.physical.config.HashPartitionSender;
 import org.apache.drill.exec.physical.config.HashToRandomExchange;
+import org.apache.drill.exec.physical.config.Intersect;
 import org.apache.drill.exec.physical.config.IteratorValidator;
 import org.apache.drill.exec.physical.config.LateralJoinPOP;
 import org.apache.drill.exec.physical.config.Limit;
@@ -48,50 +49,52 @@ import org.apache.drill.exec.physical.config.WindowPOP;
 
 /**
  * Visitor class designed to traversal of a operator tree.  Basis for a number of operator manipulations including fragmentation and materialization.
- * @param <RETURN> The class associated with the return of each visit method.
- * @param <EXTRA> The class object associated with additional data required for a particular operator modification.
- * @param <EXCEP> An optional exception class that can be thrown when a portion of a modification or traversal fails.  Must extend Throwable.  In the case where the visitor does not throw any caught exception, this can be set as RuntimeException.
+ * @param <R> The class associated with the return of each visit method.
+ * @param <V> The class object associated with additional data required for a particular operator modification.
+ * @param <T> An optional exception class that can be thrown when a portion of a modification or traversal fails.  Must extend Throwable.  In the case where the visitor does not throw any caught exception, this can be set as RuntimeException.
  */
-public interface PhysicalVisitor<RETURN, EXTRA, EXCEP extends Throwable> {
-  static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PhysicalVisitor.class);
+public interface PhysicalVisitor<R, V, T extends Throwable> {
+  org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PhysicalVisitor.class);
 
 
-  public RETURN visitExchange(Exchange exchange, EXTRA value) throws EXCEP;
-  public RETURN visitGroupScan(GroupScan groupScan, EXTRA value) throws EXCEP;
-  public RETURN visitSubScan(SubScan subScan, EXTRA value) throws EXCEP;
-  public RETURN visitStore(Store store, EXTRA value) throws EXCEP;
-  public RETURN visitFilter(Filter filter, EXTRA value) throws EXCEP;
-  public RETURN visitUnion(UnionAll union, EXTRA value) throws EXCEP;
-  public RETURN visitProject(Project project, EXTRA value) throws EXCEP;
-  public RETURN visitTrace(Trace trace, EXTRA value) throws EXCEP;
-  public RETURN visitSort(Sort sort, EXTRA value) throws EXCEP;
-  public RETURN visitLimit(Limit limit, EXTRA value) throws EXCEP;
-  public RETURN visitFlatten(FlattenPOP flatten, EXTRA value) throws EXCEP;
-  public RETURN visitSender(Sender sender, EXTRA value) throws EXCEP;
-  public RETURN visitRowKeyJoin(RowKeyJoinPOP join, EXTRA value) throws EXCEP;
-  public RETURN visitReceiver(Receiver receiver, EXTRA value) throws EXCEP;
-  public RETURN visitStreamingAggregate(StreamingAggregate agg, EXTRA value) throws EXCEP;
-  public RETURN visitStatisticsAggregate(StatisticsAggregate agg, EXTRA value) throws EXCEP;
-  public RETURN visitStatisticsMerge(StatisticsMerge agg, EXTRA value) throws EXCEP;
-  public RETURN visitHashAggregate(HashAggregate agg, EXTRA value) throws EXCEP;
-  public RETURN visitWriter(Writer op, EXTRA value) throws EXCEP;
-  public RETURN visitUnpivot(UnpivotMaps op, EXTRA value) throws EXCEP;
-  public RETURN visitValues(Values op, EXTRA value) throws EXCEP;
-  public RETURN visitOp(PhysicalOperator op, EXTRA value) throws EXCEP;
+  R visitExchange(Exchange exchange, V value) throws T;
+  R visitGroupScan(GroupScan groupScan, V value) throws T;
+  R visitSubScan(SubScan subScan, V value) throws T;
+  R visitStore(Store store, V value) throws T;
+  R visitFilter(Filter filter, V value) throws T;
+  R visitUnion(UnionAll union, V value) throws T;
+  R visitProject(Project project, V value) throws T;
+  R visitTrace(Trace trace, V value) throws T;
+  R visitSort(Sort sort, V value) throws T;
+  R visitLimit(Limit limit, V value) throws T;
+  R visitFlatten(FlattenPOP flatten, V value) throws T;
+  R visitSender(Sender sender, V value) throws T;
+  R visitRowKeyJoin(RowKeyJoinPOP join, V value) throws T;
+  R visitReceiver(Receiver receiver, V value) throws T;
+  R visitStreamingAggregate(StreamingAggregate agg, V value) throws T;
+  R visitStatisticsAggregate(StatisticsAggregate agg, V value) throws T;
+  R visitStatisticsMerge(StatisticsMerge agg, V value) throws T;
+  R visitHashAggregate(HashAggregate agg, V value) throws T;
+  R visitWriter(Writer op, V value) throws T;
+  R visitUnpivot(UnpivotMaps op, V value) throws T;
+  R visitValues(Values op, V value) throws T;
+  R visitOp(PhysicalOperator op, V value) throws T;
 
-  public RETURN visitHashPartitionSender(HashPartitionSender op, EXTRA value) throws EXCEP;
-  public RETURN visitOrderedPartitionSender(OrderedPartitionSender op, EXTRA value) throws EXCEP;
-  public RETURN visitUnorderedReceiver(UnorderedReceiver op, EXTRA value) throws EXCEP;
-  public RETURN visitMergingReceiver(MergingReceiverPOP op, EXTRA value) throws EXCEP;
-  public RETURN visitHashPartitionSender(HashToRandomExchange op, EXTRA value) throws EXCEP;
-  public RETURN visitRangePartitionSender(RangePartitionSender op, EXTRA value) throws EXCEP;
-  public RETURN visitBroadcastSender(BroadcastSender op, EXTRA value) throws EXCEP;
-  public RETURN visitScreen(Screen op, EXTRA value) throws EXCEP;
-  public RETURN visitSingleSender(SingleSender op, EXTRA value) throws EXCEP;
-  public RETURN visitWindowFrame(WindowPOP op, EXTRA value) throws EXCEP;
-  public RETURN visitProducerConsumer(ProducerConsumer op, EXTRA value) throws EXCEP;
-  public RETURN visitUnnest(UnnestPOP unnest, EXTRA value) throws EXCEP;
-  public RETURN visitLateralJoin(LateralJoinPOP lateralJoinPOP, EXTRA value) throws EXCEP;
+  R visitHashPartitionSender(HashPartitionSender op, V value) throws T;
+  R visitOrderedPartitionSender(OrderedPartitionSender op, V value) throws T;
+  R visitUnorderedReceiver(UnorderedReceiver op, V value) throws T;
+  R visitMergingReceiver(MergingReceiverPOP op, V value) throws T;
+  R visitHashPartitionSender(HashToRandomExchange op, V value) throws T;
+  R visitRangePartitionSender(RangePartitionSender op, V value) throws T;
+  R visitBroadcastSender(BroadcastSender op, V value) throws T;
+  R visitScreen(Screen op, V value) throws T;
+  R visitSingleSender(SingleSender op, V value) throws T;
+  R visitWindowFrame(WindowPOP op, V value) throws T;
+  R visitProducerConsumer(ProducerConsumer op, V value) throws T;
+  R visitUnnest(UnnestPOP unnest, V value) throws T;
+  R visitLateralJoin(LateralJoinPOP lateralJoinPOP, V value) throws T;
 
-  public RETURN visitIteratorValidator(IteratorValidator op, EXTRA value) throws EXCEP;
+  R visitIteratorValidator(IteratorValidator op, V value) throws T;
+
+  R visitIntersect(Intersect op, V value) throws T;
 }

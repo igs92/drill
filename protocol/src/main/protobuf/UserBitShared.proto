@@ -361,6 +361,7 @@ enum CoreOperatorType {
   SHP_SUB_SCAN = 65;
   METADATA_HANDLER = 66;
   METADATA_CONTROLLER = 67;
+  INTERSECT = 68;
 }
 
 /* Registry that contains list of jars, each jar contains its name and list of function signatures.

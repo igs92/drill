@@ -17,14 +17,67 @@
  */
 package org.apache.drill.common.logical.data;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-// todo: learn more about intents[1] and finish.
-//  [1] https://docs.google.com/document/d/1QTL8warUYS2KjldQrGUse7zp8eA72VKtLOHwfXy6c7I/edit#heading=h.ax35l95lrnic
-@JsonTypeName("intersect")
-public class Intersect {
-  private final boolean all;
+import org.apache.drill.common.logical.data.visitors.LogicalVisitor;
 
-  public Intersect(boolean all) {
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+@JsonTypeName("intersect")
+public class Intersect extends LogicalOperatorBase {
+
+  private final boolean all;
+  private final List<LogicalOperator> inputs;
+
+  @JsonCreator
+  public Intersect(@JsonProperty("all") boolean all, @JsonProperty("inputs") List<LogicalOperator> inputs) {
     this.all = all;
+    this.inputs = inputs;
+  }
+
+  public boolean isAll() {
+    return all;
+  }
+
+  public List<LogicalOperator> getInputs() {
+    return inputs;
+  }
+
+  @Override
+  public <T, X, E extends Throwable> T accept(LogicalVisitor<T, X, E> logicalVisitor, X value) throws E {
+    return logicalVisitor.visitIntersect(this, value);
+  }
+
+  @Override
+  public Iterator<LogicalOperator> iterator() {
+    return inputs.iterator();
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder extends AbstractBuilder<Intersect> {
+
+    private final List<LogicalOperator> inputs = new ArrayList<>();
+    private boolean all;
+
+    public Builder addInput(LogicalOperator input) {
+      inputs.add(input);
+      return this;
+    }
+
+    public Builder all(boolean all) {
+      this.all = all;
+      return this;
+    }
+
+    @Override
+    public Intersect build() {
+      return new Intersect(all, inputs);
+    }
   }
 }
