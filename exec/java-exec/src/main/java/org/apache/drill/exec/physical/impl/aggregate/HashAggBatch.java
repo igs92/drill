@@ -379,7 +379,7 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
     ClassGenerator<HashAggregator> cgInner = cg.getInnerGenerator("BatchHolder");
     top.plainJavaCapable(true);
     // Uncomment the following line to allow debugging of the template code
-    // top.saveCodeForDebugging(true);
+     top.saveCodeForDebugging(true);
     container.clear();
 
     numGroupByExprs = (getKeyExpressions() != null) ? getKeyExpressions().size() : 0;

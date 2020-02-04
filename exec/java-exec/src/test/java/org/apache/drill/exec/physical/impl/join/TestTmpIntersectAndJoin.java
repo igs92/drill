@@ -84,4 +84,14 @@ public class TestTmpIntersectAndJoin extends ClusterTest {
         .sql(sql)
         .run();
   }
+
+  @Test
+  public void testSimpleHashAgg() throws Exception {
+    String sql = "SELECT count(employee_id) employees, position_title " +
+        "FROM cp.`employee.json` " +
+        "GROUP BY position_title";
+    queryBuilder()
+        .sql(sql)
+        .run();
+  }
 }

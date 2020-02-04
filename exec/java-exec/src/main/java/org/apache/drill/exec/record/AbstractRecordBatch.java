@@ -60,25 +60,16 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
     this(popConfig, context, buildSchema, context.newOperatorContext(popConfig));
   }
 
-  protected AbstractRecordBatch(T popConfig, FragmentContext context, boolean buildSchema,
-      OperatorContext oContext) {
+  protected AbstractRecordBatch(T popConfig, FragmentContext context, boolean buildSchema, OperatorContext oContext) {
     this.context = context;
     this.popConfig = popConfig;
     this.oContext = oContext;
     this.batchStatsContext = new RecordBatchStatsContext(context, oContext);
-    stats = oContext.getStats();
-    container = new VectorContainer(this.oContext.getAllocator());
-    if (buildSchema) {
-      state = BatchState.BUILD_SCHEMA;
-    } else {
-      state = BatchState.FIRST;
-    }
-    OptionValue option = context.getOptions().getOption(ExecConstants.ENABLE_UNION_TYPE.getOptionName());
-    if (option != null) {
-      unionTypeEnabled = option.bool_val;
-    } else {
-      unionTypeEnabled = false;
-    }
+    this.stats = oContext.getStats();
+    this.container = new VectorContainer(this.oContext.getAllocator());
+    this.state = buildSchema ? BatchState.BUILD_SCHEMA : BatchState.FIRST;
+    OptionValue enableUnion = context.getOptions().getOption(ExecConstants.ENABLE_UNION_TYPE.getOptionName());
+    this.unionTypeEnabled = enableUnion != null && enableUnion.bool_val;
   }
 
   public enum BatchState {
