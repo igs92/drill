@@ -17,21 +17,24 @@
  */
 package org.apache.drill.exec.compile.sig;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.drill.shaded.guava.com.google.common.collect.ImmutableMap;
 import org.apache.drill.shaded.guava.com.google.common.collect.Iterators;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
-import org.apache.drill.shaded.guava.com.google.common.collect.Maps;
 
 public class SignatureHolder implements Iterable<CodeGeneratorMethod> {
-  static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SignatureHolder.class);
+  private static final String ATTEMPTING_TO_ADD_METHOD_WITH_SAME_NAME =
+      "Attempting to add a method with name %s when there is already one method of " +
+      "that name in this class that is set to be runtime generated.";
 
   private final Class<?> signature;
   private final CodeGeneratorMethod[] methods;
@@ -62,41 +65,27 @@ public class SignatureHolder implements Iterable<CodeGeneratorMethod> {
   private SignatureHolder(Class<?> signature, SignatureHolder[] childHolders) {
     this.childHolders = childHolders;
     this.signature = signature;
-    Map<String, Integer> newMap = Maps.newHashMap();
-
-    List<CodeGeneratorMethod> methodHolders = Lists.newArrayList();
-    Method[] reflectMethods = signature.getDeclaredMethods();
-
-    for (Method m : reflectMethods) {
-      if ( (m.getModifiers() & Modifier.ABSTRACT) == 0 && m.getAnnotation(RuntimeOverridden.class) == null) {
-        continue;
-      }
-      methodHolders.add(new CodeGeneratorMethod(m));
-    }
 
     // Alphabetize methods to ensure generated code is comparable.
     // Also eases debugging as the generated code contain different method
     // order from run to run.
+    AtomicInteger ordinal = new AtomicInteger();
+    Map<String, Integer> newMap = new HashMap<>();
+    List<CodeGeneratorMethod> methodHolders = Stream.of(signature.getDeclaredMethods())
+        .filter(m -> !((m.getModifiers() & Modifier.ABSTRACT) == 0 && m.getAnnotation(RuntimeOverridden.class) == null))
+        .map(CodeGeneratorMethod::new)
+        .sorted(Comparator.comparing(CodeGeneratorMethod::getMethodName))
+        .peek(m -> {
+          if (newMap.put(m.getMethodName(), ordinal.getAndIncrement()) != null) {
+            throw new IllegalStateException(String.format(ATTEMPTING_TO_ADD_METHOD_WITH_SAME_NAME, m.getMethodName()));
+          }
+        })
+        .collect(Collectors.toList());
 
-    Collections.sort( methodHolders, new Comparator<CodeGeneratorMethod>( ) {
-      @Override
-      public int compare(CodeGeneratorMethod o1, CodeGeneratorMethod o2) {
-        return o1.getMethodName().compareTo( o2.getMethodName() );
-      } } );
-
-    methods = new CodeGeneratorMethod[methodHolders.size()+1];
-    for (int i =0; i < methodHolders.size(); i++) {
-      methods[i] = methodHolders.get(i);
-      Integer old = newMap.put(methods[i].getMethodName(), i);
-      if (old != null) {
-        throw new IllegalStateException(String.format("Attempting to add a method with name %s when there is already one method of that name in this class that is set to be runtime generated.", methods[i].getMethodName()));
-      }
-
-    }
-    methods[methodHolders.size()] = DRILL_INIT;
+    this.methods = methodHolders.toArray(new CodeGeneratorMethod[methodHolders.size() + 1]);
+    this.methods[methodHolders.size()] = DRILL_INIT;
     newMap.put(DRILL_INIT.getMethodName(), methodHolders.size());
-
-    methodMap = ImmutableMap.copyOf(newMap);
+    this.methodMap = ImmutableMap.copyOf(newMap);
   }
 
   public Class<?> getSignatureClass() {

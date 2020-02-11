@@ -80,6 +80,7 @@ import org.apache.drill.exec.vector.VariableWidthVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// todo: javadoc
 public abstract class HashAggTemplate implements HashAggregator {
 
   protected static final Logger logger = LoggerFactory.getLogger(HashAggTemplate.class);
@@ -87,17 +88,34 @@ public abstract class HashAggTemplate implements HashAggregator {
   private static final int VARIABLE_MAX_WIDTH_VALUE_SIZE = 50;
   private static final int VARIABLE_MIN_WIDTH_VALUE_SIZE = 8;
 
+  // todo: drop?
   private static final boolean EXTRA_DEBUG_1 = false;
   private static final boolean EXTRA_DEBUG_2 = false;
   private static final boolean EXTRA_DEBUG_SPILL = false;
 
-  // Fields needed for partitioning (the groups into partitions)
-  private int nextPartitionToReturn; // which partition to return the next batch from
-  // The following members are used for logging, metrics, etc.
+  /**
+   * Which partition to return the next batch from
+   */
+  private int nextPartitionToReturn;
+  /**
+   * Count of rows in each partition
+   */
   private int rowsInPartition; // counts #rows in each partition
+  /**
+   * Count of not spilled rows
+   */
   private int rowsNotSpilled;
+  /**
+   * Count of spilled rows
+   */
   private int rowsSpilled;
+  /**
+   * Count of returned spilled rows
+   */
   private int rowsSpilledReturned;
+  /**
+   * Count of rows returned early
+   */
   private int rowsReturnedEarly;
 
   private AggPrelBase.OperatorPhase phase;
@@ -191,22 +209,11 @@ public abstract class HashAggTemplate implements HashAggregator {
     }
   }
 
+  // todo: javadoc?
   public class BatchHolder {
     private final VectorContainer aggrValuesContainer; // container for aggr values (workspace variables)
     private int maxOccupiedIdx = -1;
     private int targetBatchRowCount;
-
-    public int getTargetBatchRowCount() {
-      return targetBatchRowCount;
-    }
-
-    public void setTargetBatchRowCount(int batchRowCount) {
-      this.targetBatchRowCount = batchRowCount;
-    }
-
-    public int getCurrentRowCount() {
-      return (maxOccupiedIdx + 1);
-    }
 
     public BatchHolder(int batchRowCount) {
 
@@ -249,6 +256,18 @@ public abstract class HashAggTemplate implements HashAggregator {
       }
     }
 
+    public int getTargetBatchRowCount() {
+      return targetBatchRowCount;
+    }
+
+    public void setTargetBatchRowCount(int batchRowCount) {
+      this.targetBatchRowCount = batchRowCount;
+    }
+
+    public int getCurrentRowCount() {
+      return (maxOccupiedIdx + 1);
+    }
+
     private boolean updateAggrValues(int incomingRowIdx, int idxWithinBatch) {
       try { updateAggrValuesInternal(incomingRowIdx, idxWithinBatch); }
       catch (SchemaChangeException sc) { throw new UnsupportedOperationException(sc); }
@@ -285,16 +304,19 @@ public abstract class HashAggTemplate implements HashAggregator {
     // Code-generated methods (implemented in HashAggBatch)
 
     @RuntimeOverridden
-    public void setupInterior(@Named("incoming") RecordBatch incoming, @Named("outgoing") RecordBatch outgoing,
-        @Named("aggrValuesContainer") VectorContainer aggrValuesContainer) throws SchemaChangeException {
+    public void setupInterior(@Named("incoming") RecordBatch incoming,
+                              @Named("outgoing") RecordBatch outgoing,
+                              @Named("aggrValuesContainer") VectorContainer aggrValuesContainer) throws SchemaChangeException {
     }
 
     @RuntimeOverridden
-    public void updateAggrValuesInternal(@Named("incomingRowIdx") int incomingRowIdx, @Named("htRowIdx") int htRowIdx) throws SchemaChangeException{
+    public void updateAggrValuesInternal(@Named("incomingRowIdx") int incomingRowIdx,
+                                         @Named("htRowIdx") int htRowIdx) throws SchemaChangeException {
     }
 
     @RuntimeOverridden
-    public void outputRecordValues(@Named("htRowIdx") int htRowIdx, @Named("outRowIdx") int outRowIdx) throws SchemaChangeException{
+    public void outputRecordValues(@Named("htRowIdx") int htRowIdx,
+                                   @Named("outRowIdx") int outRowIdx) throws SchemaChangeException {
     }
   }
 
@@ -1063,7 +1085,7 @@ public abstract class HashAggTemplate implements HashAggregator {
   public AggIterOutcome outputCurrentBatch() {
 
     // Handle the case of an EMIT with an empty batch
-    if ( handleEmit && ( batchHolders == null || batchHolders[0].size() == 0 ) ) {
+    if (handleEmit && (batchHolders == null || batchHolders[0].size() == 0)) {
       lastBatchOutputCount = 0; // empty
       allocateOutgoing(0);
       outgoing.getContainer().setValueCount(0);

@@ -47,6 +47,7 @@ import java.util.List;
 
 public abstract class AggPrelBase extends DrillAggregateRelBase implements Prel {
 
+  // todo: javadoc ?
   public enum OperatorPhase {
     PHASE_1of1(false, false, false, "Single"),
     PHASE_1of2(true, true, false, "1st"),

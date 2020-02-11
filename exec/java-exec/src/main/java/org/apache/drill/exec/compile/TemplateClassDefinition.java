@@ -33,13 +33,23 @@ import org.apache.drill.exec.compile.sig.SignatureHolder;
  *
  * @param <T> The template interface
  */
-
-public class TemplateClassDefinition<T>{
+public class TemplateClassDefinition<T> {
 
   static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TemplateClassDefinition.class);
-
+  /**
+   * Class of interface which will be implemented by generated code.
+   */
   private final Class<T> iface;
+  /**
+   * Partial implementation of interface which usually leaves abstract methods
+   * to be implemented by generated code.
+   */
   private final Class<? extends T> template;
+  /**
+   * Holder of parts (abstract methods and inner classes signature) which should be implemented by
+   * generated code. Created by inspecting {@link TemplateClassDefinition#template} class
+   * and filtering out non-abstract parts.
+   */
   private final SignatureHolder signature;
   private static final AtomicLong classNumber = new AtomicLong(0);
 
@@ -48,15 +58,15 @@ public class TemplateClassDefinition<T>{
     this.iface = iface;
     this.template = template;
     SignatureHolder holder = null;
-    try{
+    try {
       holder = SignatureHolder.getHolder(template);
-    }catch(Exception ex){
+    } catch (Exception ex) {
       logger.error("Failure while trying to build signature holder for signature. {}", template.getName(), ex);
     }
     this.signature = holder;
   }
 
-  public long getNextClassNumber(){
+  public long getNextClassNumber() {
     return classNumber.getAndIncrement();
   }
 
@@ -72,20 +82,18 @@ public class TemplateClassDefinition<T>{
     return template.getName();
   }
 
-  public SignatureHolder getSignature(){
+  public SignatureHolder getSignature() {
     return signature;
   }
 
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder();
-    buf.append("TemplateClassDefinition [interface=");
-    buf.append((iface == null) ? "null" : iface.getName());
-    buf.append(", template=");
-    buf.append((template == null) ? "null" : template.getName());
-    buf.append(", signature=\n");
-    buf.append(signature);
-    buf.append("]");
-    return buf.toString();
+    return "TemplateClassDefinition [interface=" +
+        ((iface == null) ? "null" : iface.getName()) +
+        ", template=" +
+        ((template == null) ? "null" : template.getName()) +
+        ", signature=\n" +
+        signature +
+        "]";
   }
 }

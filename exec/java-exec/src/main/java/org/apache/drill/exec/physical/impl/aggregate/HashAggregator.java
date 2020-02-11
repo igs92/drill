@@ -31,18 +31,40 @@ import org.apache.drill.exec.record.RecordBatch.IterOutcome;
 import org.apache.drill.exec.record.TypedFieldId;
 import org.apache.drill.exec.record.VectorContainer;
 
+// todo: javadoc ?
 public interface HashAggregator {
-
   TemplateClassDefinition<HashAggregator> TEMPLATE_DEFINITION =
-      new TemplateClassDefinition<HashAggregator>(HashAggregator.class, HashAggTemplate.class);
+      new TemplateClassDefinition<>(HashAggregator.class, HashAggTemplate.class);
 
+  // todo: javadoc ?
   enum AggOutcome {
-    RETURN_OUTCOME, CLEANUP_AND_RETURN, UPDATE_AGGREGATOR, CALL_WORK_AGAIN
+    RETURN_OUTCOME,
+    CLEANUP_AND_RETURN,
+    UPDATE_AGGREGATOR,
+    CALL_WORK_AGAIN
   }
 
-  // For returning results from outputCurrentBatch
-  // OK - batch returned, NONE - end of data, RESTART - call again, EMIT - like OK but EMIT
-  enum AggIterOutcome { AGG_OK, AGG_NONE, AGG_RESTART, AGG_EMIT }
+  /**
+   * Enumerates possible results for {@link HashAggregator#outputCurrentBatch()}
+   */
+  enum AggIterOutcome {
+    /**
+     * Batch returned
+     */
+    AGG_OK,
+    /**
+     * End of data
+     */
+    AGG_NONE,
+    /**
+     * Call again
+     */
+    AGG_RESTART,
+    /**
+     * Like ok but emit
+     */
+    AGG_EMIT
+  }
 
   void setup(HashAggregate hashAggrConfig, HashTableConfig htConfig, FragmentContext context,
              OperatorContext oContext, RecordBatch incoming, HashAggBatch outgoing,

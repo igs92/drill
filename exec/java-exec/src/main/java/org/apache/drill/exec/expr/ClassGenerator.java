@@ -177,9 +177,8 @@ public class ClassGenerator<T> {
   }
 
   public ClassGenerator<T> getInnerGenerator(String name) {
-    ClassGenerator<T> inner = innerClasses.get(name);
-    Preconditions.checkNotNull(inner);
-    return inner;
+    return Preconditions.checkNotNull(innerClasses.get(name),
+        "Inner class with name '" + name + "' is absent in map of inner classes.");
   }
 
   public MappingSet getMappingSet() {
