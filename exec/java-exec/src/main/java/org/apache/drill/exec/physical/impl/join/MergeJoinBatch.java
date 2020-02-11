@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.join;
 
+import org.apache.drill.exec.compile.sig.GeneratorMapping;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +69,6 @@ import org.apache.drill.exec.vector.complex.AbstractContainerVector;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.apache.drill.exec.compile.sig.GeneratorMapping.GM;
-
 /**
  * A join operator that merges two sorted streams using a record iterator.
  */
@@ -79,24 +78,24 @@ public class MergeJoinBatch extends AbstractBinaryRecordBatch<MergeJoinPOP> {
 
   private final MappingSet setupMapping =
     new MappingSet("null", "null",
-      GM("doSetup", "doSetup", null, null),
-      GM("doSetup", "doSetup", null, null));
+        GeneratorMapping.methods().setup("doSetup").eval("doSetup"),
+        GeneratorMapping.methods().setup("doSetup").eval("doSetup"));
   private final MappingSet copyLeftMapping =
     new MappingSet("leftIndex", "outIndex",
-      GM("doSetup", "doSetup", null, null),
-      GM("doSetup", "doCopyLeft", null, null));
+        GeneratorMapping.methods().setup("doSetup").eval("doSetup"),
+        GeneratorMapping.methods().setup("doSetup").eval("doCopyLeft"));
   private final MappingSet copyRightMappping =
     new MappingSet("rightIndex", "outIndex",
-      GM("doSetup", "doSetup", null, null),
-      GM("doSetup", "doCopyRight", null, null));
+      GeneratorMapping.methods().setup("doSetup").eval("doSetup"),
+      GeneratorMapping.methods().setup("doSetup").eval("doCopyRight"));
   private final MappingSet compareMapping =
     new MappingSet("leftIndex", "rightIndex",
-      GM("doSetup", "doSetup", null, null),
-      GM("doSetup", "doCompare", null, null));
+      GeneratorMapping.methods().setup("doSetup").eval("doSetup"),
+      GeneratorMapping.methods().setup("doSetup").eval("doCompare"));
   private final MappingSet compareRightMapping =
     new MappingSet("rightIndex", "null",
-      GM("doSetup", "doSetup", null, null),
-      GM("doSetup", "doCompare", null, null));
+      GeneratorMapping.methods().setup("doSetup").eval("doSetup"),
+      GeneratorMapping.methods().setup("doSetup").eval("doCompare"));
 
   private final RecordIterator leftIterator;
   private final RecordIterator rightIterator;

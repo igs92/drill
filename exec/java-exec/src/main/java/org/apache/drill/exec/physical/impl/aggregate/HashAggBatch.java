@@ -100,13 +100,11 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
   private final Map<String, String> columnMapping;
   private final HashAggMemoryManager hashAggMemoryManager;
 
-  private final GeneratorMapping UPDATE_AGGR_INSIDE =
-      GeneratorMapping.create("setupInterior" /* setup method */, "updateAggrValuesInternal" /* eval method */,
-          "resetValues" /* reset */, "cleanup" /* cleanup */);
+  private final GeneratorMapping UPDATE_AGGR_INSIDE = GeneratorMapping.methods()
+      .setup("setupInterior").eval("updateAggrValuesInternal").reset("resetValues").cleanup("cleanup");
 
-  private final GeneratorMapping UPDATE_AGGR_OUTSIDE =
-      GeneratorMapping.create("setupInterior" /* setup method */, "outputRecordValues" /* eval method */,
-          "resetValues" /* reset */, "cleanup" /* cleanup */);
+  private final GeneratorMapping UPDATE_AGGR_OUTSIDE = GeneratorMapping.methods()
+      .setup("setupInterior").eval("outputRecordValues").reset("resetValues").cleanup("cleanup");
 
   private final MappingSet UpdateAggrValuesMapping =
       new MappingSet("incomingRowIdx" /* read index */, "outRowIdx" /* write index */,

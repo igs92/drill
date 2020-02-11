@@ -17,8 +17,6 @@
  */
 package org.apache.drill.exec.expr;
 
-import static org.apache.drill.exec.compile.sig.GeneratorMapping.GM;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -69,8 +67,10 @@ import org.apache.drill.exec.server.options.OptionSet;
 
 public class ClassGenerator<T> {
 
-  public static final GeneratorMapping DEFAULT_SCALAR_MAP = GM("doSetup", "doEval", null, null);
-  public static final GeneratorMapping DEFAULT_CONSTANT_MAP = GM("doSetup", "doSetup", null, null);
+  public static final GeneratorMapping DEFAULT_SCALAR_MAP = GeneratorMapping.methods()
+      .setup("doSetup").eval("doEval");
+  public static final GeneratorMapping DEFAULT_CONSTANT_MAP = GeneratorMapping.methods()
+      .setup("doSetup").eval("doSetup");
   public static final String INNER_CLASS_FIELD_NAME = "innerClassField";
 
   public enum BlockType {SETUP, EVAL, RESET, CLEANUP}
@@ -103,7 +103,7 @@ public class ClassGenerator<T> {
    * be taken into account later.
    * <p>
    * Local variable has 1 index within the constant pool.
-   * {@link org.objectweb.asm.MethodWriter#visitLocalVariable(String, String, String, Label, Label, int)}
+   * {@code org.objectweb.asm.MethodWriter.visitLocalVariable(String, String, String, Label, Label, int)}
    * <p>
    * For upper estimation of max index value, suppose that each field and local
    * variable uses different literal values that have two indexes, then the

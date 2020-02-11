@@ -147,9 +147,10 @@ public abstract class WindowFunction {
 
     @Override
     void generateCode(ClassGenerator<WindowFramer> cg) {
-      final GeneratorMapping EVAL_INSIDE = GeneratorMapping.create("setupEvaluatePeer", "evaluatePeer", null, null);
-      final GeneratorMapping EVAL_OUTSIDE = GeneratorMapping.create("setupPartition", "outputRow", "resetValues", "cleanup");
-      final MappingSet mappingSet = new MappingSet("index", "outIndex", EVAL_INSIDE, EVAL_OUTSIDE, EVAL_INSIDE);
+      GeneratorMapping evalInside = GeneratorMapping.methods().setup("setupEvaluatePeer").eval("evaluatePeer");
+      GeneratorMapping evalOutside = GeneratorMapping.methods().setup("setupPartition").eval("outputRow")
+          .reset("resetValues").cleanup("cleanup");
+      MappingSet mappingSet = new MappingSet("index", "outIndex", evalInside, evalOutside, evalInside);
 
       cg.setMappingSet(mappingSet);
       cg.addExpr(writeAggregationToOutput);
@@ -192,7 +193,8 @@ public abstract class WindowFunction {
 
     @Override
     void generateCode(ClassGenerator<WindowFramer> cg) {
-      final GeneratorMapping mapping = GeneratorMapping.create("setupPartition", "outputRow", "resetValues", "cleanup");
+      final GeneratorMapping mapping = GeneratorMapping.methods().setup("setupPartition").eval("outputRow")
+          .reset("resetValues").cleanup("cleanup");
       final MappingSet mappingSet = new MappingSet(null, "outIndex", mapping, mapping);
 
       cg.setMappingSet(mappingSet);
@@ -275,12 +277,13 @@ public abstract class WindowFunction {
 
     @Override
     void generateCode(ClassGenerator<WindowFramer> cg) {
-      final GeneratorMapping mapping = GeneratorMapping.create("setupPartition", "outputRow", "resetValues", "cleanup");
-      final MappingSet mappingSet = new MappingSet(null, "outIndex", mapping, mapping);
+      GeneratorMapping mapping = GeneratorMapping.methods()
+          .setup("setupPartition").eval("outputRow").reset("resetValues").cleanup("cleanup");
+      MappingSet mappingSet = new MappingSet(null, "outIndex", mapping, mapping);
 
       cg.setMappingSet(mappingSet);
-      final JVar vv = cg.declareVectorValueSetupAndMember(cg.getMappingSet().getOutgoing(), fieldId);
-      final JExpression outIndex = cg.getMappingSet().getValueWriteIndex();
+      JVar vv = cg.declareVectorValueSetupAndMember(cg.getMappingSet().getOutgoing(), fieldId);
+      JExpression outIndex = cg.getMappingSet().getValueWriteIndex();
       JInvocation setMethod = vv.invoke("getMutator").invoke("setSafe").arg(outIndex)
         .arg(JExpr.direct("partition.ntile(" + numTiles + ")"));
       cg.getEvalBlock().add(setMethod);
@@ -296,7 +299,8 @@ public abstract class WindowFunction {
 
     @Override
     void generateCode(ClassGenerator<WindowFramer> cg) {
-      final GeneratorMapping mapping = GeneratorMapping.create("setupCopyNext", "copyNext", null, null);
+      final GeneratorMapping mapping = GeneratorMapping.methods()
+          .setup("setupCopyNext").eval("copyNext");
       final MappingSet eval = new MappingSet("inIndex", "outIndex", mapping, mapping);
 
       cg.setMappingSet(eval);
@@ -380,8 +384,9 @@ public abstract class WindowFunction {
     void generateCode(ClassGenerator<WindowFramer> cg) {
       {
         // generating lag copyFromInternal
-        final GeneratorMapping mapping = GeneratorMapping.create("setupCopyFromInternal", "copyFromInternal", null, null);
-        final MappingSet mappingSet = new MappingSet("inIndex", "outIndex", mapping, mapping);
+        GeneratorMapping mapping = GeneratorMapping.methods()
+            .setup("setupCopyFromInternal").eval("copyFromInternal");
+        MappingSet mappingSet = new MappingSet("inIndex", "outIndex", mapping, mapping);
 
         cg.setMappingSet(mappingSet);
         cg.addExpr(writeLagToLag);
@@ -389,7 +394,8 @@ public abstract class WindowFunction {
 
       {
         // generating lag copyPrev
-        final GeneratorMapping mapping = GeneratorMapping.create("setupCopyPrev", "copyPrev", null, null);
+        final GeneratorMapping mapping = GeneratorMapping.methods()
+            .setup("setupCopyPrev").eval("copyPrev");
         final MappingSet eval = new MappingSet("inIndex", "outIndex", mapping, mapping);
 
         cg.setMappingSet(eval);
@@ -450,7 +456,8 @@ public abstract class WindowFunction {
       // this will generate the the following, pseudo, code:
       //   write current.source_last_value[frameLastRow] to container.last_value[row]
 
-      final GeneratorMapping mapping = GeneratorMapping.create("setupReadLastValue", "writeLastValue", "resetValues", "cleanup");
+      final GeneratorMapping mapping = GeneratorMapping.methods()
+          .setup("setupReadLastValue").eval("writeLastValue").reset("resetValues").cleanup("cleanup");
       final MappingSet mappingSet = new MappingSet("index", "outIndex", mapping, mapping);
 
       cg.setMappingSet(mappingSet);
@@ -517,7 +524,8 @@ public abstract class WindowFunction {
         // so it basically copies the first value of current partition into the first row of internal.first_value
         // this is especially useful when handling multiple batches for the same partition where we need to keep
         // the first value of the partition somewhere after we release the first batch
-        final GeneratorMapping mapping = GeneratorMapping.create("setupSaveFirstValue", "saveFirstValue", null, null);
+        final GeneratorMapping mapping = GeneratorMapping.methods().setup("setupSaveFirstValue")
+            .eval("saveFirstValue");
         final MappingSet mappingSet = new MappingSet("index", "0", mapping, mapping);
 
         cg.setMappingSet(mappingSet);
@@ -534,7 +542,8 @@ public abstract class WindowFunction {
         //   write internal.first_value[0] to container.first_value[outIndex]
         //
         // so it basically copies the value stored in internal.first_value's first row into all rows of container.first_value
-        final GeneratorMapping mapping = GeneratorMapping.create("setupWriteFirstValue", "outputRow", "resetValues", "cleanup");
+        final GeneratorMapping mapping = GeneratorMapping.methods()
+            .setup("setupWriteFirstValue").eval("outputRow").reset("resetValues").cleanup("cleanup");
         final MappingSet mappingSet = new MappingSet("0", "outIndex", mapping, mapping);
         cg.setMappingSet(mappingSet);
         cg.addExpr(writeFirstValueToFirstValue);

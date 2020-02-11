@@ -518,7 +518,7 @@ public class StreamingAggBatch extends AbstractRecordBatch<StreamingAggregate> {
     return popConfig.getKeys();
   }
 
-  private final GeneratorMapping IS_SAME = GeneratorMapping.create("setupInterior", "isSame", null, null);
+  private final GeneratorMapping IS_SAME = GeneratorMapping.methods().setup("setupInterior").eval("isSame");
   private final MappingSet IS_SAME_I1 = new MappingSet("index1", null, IS_SAME, IS_SAME);
   private final MappingSet IS_SAME_I2 = new MappingSet("index2", null, IS_SAME, IS_SAME);
 
@@ -541,8 +541,10 @@ public class StreamingAggBatch extends AbstractRecordBatch<StreamingAggregate> {
   }
 
   // the internal batch changes each time so we need to redo setup.
-  private final GeneratorMapping IS_SAME_PREV_INTERNAL_BATCH_READ = GeneratorMapping.create("isSamePrev", "isSamePrev", null, null);
-  private final GeneratorMapping IS_SAME_PREV = GeneratorMapping.create("setupInterior", "isSamePrev", null, null);
+  private final GeneratorMapping IS_SAME_PREV_INTERNAL_BATCH_READ = GeneratorMapping.methods()
+      .setup("isSamePrev").eval("isSamePrev");
+  private final GeneratorMapping IS_SAME_PREV = GeneratorMapping.methods()
+      .setup("setupInterior").eval("isSamePrev");
   private final MappingSet ISA_B1 = new MappingSet("b1Index", null, "b1", null, IS_SAME_PREV_INTERNAL_BATCH_READ, IS_SAME_PREV_INTERNAL_BATCH_READ);
   private final MappingSet ISA_B2 = new MappingSet("b2Index", null, "incoming", null, IS_SAME_PREV, IS_SAME_PREV);
 
@@ -564,8 +566,9 @@ public class StreamingAggBatch extends AbstractRecordBatch<StreamingAggregate> {
     cg.getEvalBlock()._return(JExpr.TRUE);
   }
 
-  private final GeneratorMapping EVAL_INSIDE = GeneratorMapping.create("setupInterior", "addRecord", null, null);
-  private final GeneratorMapping EVAL_OUTSIDE = GeneratorMapping.create("setupInterior", "outputRecordValues", "resetValues", "cleanup");
+  private final GeneratorMapping EVAL_INSIDE = GeneratorMapping.methods().setup("setupInterior").eval("addRecord");
+  private final GeneratorMapping EVAL_OUTSIDE = GeneratorMapping.methods().setup("setupInterior").eval("outputRecordValues")
+      .reset("resetValues").cleanup("cleanup");
   private final MappingSet EVAL = new MappingSet("index", "outIndex", "incoming", "outgoing", EVAL_INSIDE, EVAL_OUTSIDE, EVAL_INSIDE);
 
   protected void addRecordValues(ClassGenerator<StreamingAggregator> cg, LogicalExpression[] valueExprs) {
@@ -575,7 +578,8 @@ public class StreamingAggBatch extends AbstractRecordBatch<StreamingAggregate> {
     }
   }
 
-  private final MappingSet RECORD_KEYS = new MappingSet(GeneratorMapping.create("setupInterior", "outputRecordKeys", null, null));
+  private final MappingSet RECORD_KEYS = new MappingSet(GeneratorMapping.methods()
+      .setup("setupInterior").eval("outputRecordKeys"));
 
   protected void outputRecordKeys(ClassGenerator<StreamingAggregator> cg, TypedFieldId[] keyOutputIds, LogicalExpression[] keyExprs) {
     cg.setMappingSet(RECORD_KEYS);
@@ -584,10 +588,11 @@ public class StreamingAggBatch extends AbstractRecordBatch<StreamingAggregate> {
     }
   }
 
-  private final GeneratorMapping PREVIOUS_KEYS_OUT = GeneratorMapping.create("setupInterior", "outputRecordKeysPrev", null, null);
+  private final GeneratorMapping PREVIOUS_KEYS_OUT = GeneratorMapping.methods()
+      .setup("setupInterior").eval("outputRecordKeysPrev");
   private final MappingSet RECORD_KEYS_PREV_OUT = new MappingSet("previousIndex", "outIndex", "previous", "outgoing", PREVIOUS_KEYS_OUT, PREVIOUS_KEYS_OUT);
 
-  private final GeneratorMapping PREVIOUS_KEYS = GeneratorMapping.create("outputRecordKeysPrev", "outputRecordKeysPrev", null, null);
+  private final GeneratorMapping PREVIOUS_KEYS = GeneratorMapping.methods().setup("outputRecordKeysPrev").eval("outputRecordKeysPrev");
   private final MappingSet RECORD_KEYS_PREV = new MappingSet("previousIndex", "outIndex", "previous", null, PREVIOUS_KEYS, PREVIOUS_KEYS);
 
   protected void outputRecordKeysPrev(ClassGenerator<StreamingAggregator> cg, TypedFieldId[] keyOutputIds, LogicalExpression[] keyExprs) {

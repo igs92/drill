@@ -18,8 +18,10 @@
 package org.apache.drill.exec.compile.sig;
 
 import org.apache.drill.exec.expr.ClassGenerator.BlockType;
-
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * The code generator works with four conceptual methods which can
@@ -31,69 +33,66 @@ import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
  * source.
  * <table>
  * <tr><th>Conceptual Method</th>
- *     <th>BlockType</th>
- *     <th>Typical Drill Name</th></tr>
+ * <th>BlockType</th>
+ * <th>Typical Drill Name</th></tr>
  * <tr><td>setup</td><td>SETUP</td><td>doSetup</td></tr>
  * <tr><td>eval</td><td>EVAL</td><td>doEval</td></tr>
  * <tr><td>reset</td><td>RESET</td><td>?</td></tr>
  * <tr><td>cleanup</td><td>CLEANUP</td><td>?</td></tr>
  * </table>
  */
-
 public class GeneratorMapping {
-  static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GeneratorMapping.class);
 
-  private final String setup;
-  private final String eval;
-  private final String reset;
-  private final String cleanup;
+  private final Map<BlockType, String> map;
 
-  public GeneratorMapping(final String setup, final String eval, final String reset, final String cleanup) {
-    super();
-    this.setup = setup;
-    this.eval = eval;
-    this.reset = reset;
-    this.cleanup = cleanup;
+  private GeneratorMapping() {
+    map = new EnumMap<>(BlockType.class);
   }
 
-  public GeneratorMapping(final GeneratorMapping gm) {
-    super();
-    this.setup = gm.setup;
-    this.eval = gm.eval;
-    this.reset = gm.reset;
-    this.cleanup = gm.cleanup;
+  /**
+   * Start here to create new mapping, then proceed with chaining, like:
+   * {@code GeneratorMapping.methods().setup("doSetup").eval("doEval") ... }
+   */
+  public static GeneratorMapping methods() {
+    return new GeneratorMapping();
   }
 
-  public static GeneratorMapping GM(final String setup, final String eval) {
-    return create(setup, eval, null, null);
+  /**
+   * Get mapped method name for BlockType
+   *
+   * @param type block type
+   * @return mapped method name
+   */
+  public String getMethodName(BlockType type) {
+    return Preconditions.checkNotNull(map.get(type),
+        "The current mapping does not have a %s method defined.",
+        type.name().toLowerCase());
   }
 
-  public static GeneratorMapping GM(
-      final String setup, final String eval, final String reset, final String cleanup) {
-    return create(setup, eval, reset, cleanup);
+  public GeneratorMapping setup(String methodName) {
+    return put(BlockType.SETUP, methodName);
   }
 
-  public static GeneratorMapping create(
-      final String setup, final String eval, final String reset, final String cleanup) {
-    return new GeneratorMapping(setup, eval, reset, cleanup);
+  public GeneratorMapping eval(String methodName) {
+    return put(BlockType.EVAL, methodName);
   }
 
-  public String getMethodName(final BlockType type) {
-    switch(type) {
-    case CLEANUP:
-      Preconditions.checkNotNull(cleanup, "The current mapping does not have a cleanup method defined.");
-      return cleanup;
-    case EVAL:
-      Preconditions.checkNotNull(eval, "The current mapping does not have an eval method defined.");
-      return eval;
-    case RESET:
-      Preconditions.checkNotNull(reset, "The current mapping does not have a reset method defined.");
-      return reset;
-    case SETUP:
-      Preconditions.checkNotNull(setup, "The current mapping does not have a setup method defined.");
-      return setup;
-    default:
-      throw new IllegalStateException();
-    }
+  public GeneratorMapping reset(String methodName) {
+    return put(BlockType.RESET, methodName);
+  }
+
+  public GeneratorMapping cleanup(String methodName) {
+    return put(BlockType.CLEANUP, methodName);
+  }
+
+  public GeneratorMapping copy() {
+    GeneratorMapping copy = new GeneratorMapping();
+    copy.map.putAll(map);
+    return copy;
+  }
+
+  private GeneratorMapping put(BlockType type, String methodName) {
+    map.put(type, methodName);
+    return this;
   }
 }

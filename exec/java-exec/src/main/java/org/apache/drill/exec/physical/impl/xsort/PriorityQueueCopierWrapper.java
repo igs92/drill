@@ -60,7 +60,8 @@ import static org.apache.drill.exec.record.RecordBatch.IterOutcome.EMIT;
 public class PriorityQueueCopierWrapper extends BaseSortWrapper {
   private static final Logger logger = LoggerFactory.getLogger(PriorityQueueCopierWrapper.class);
 
-  private static final GeneratorMapping COPIER_MAPPING = new GeneratorMapping("doSetup", "doCopy", null, null);
+  private static final GeneratorMapping COPIER_MAPPING = GeneratorMapping.methods()
+      .setup("doSetup").eval("doCopy");
   private final MappingSet COPIER_MAPPING_SET = new MappingSet(COPIER_MAPPING, COPIER_MAPPING);
 
   /**

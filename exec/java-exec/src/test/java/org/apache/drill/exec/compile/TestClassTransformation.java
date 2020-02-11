@@ -236,16 +236,16 @@ public class TestClassTransformation extends BaseTestQuery {
     cg.plainJavaCapable(true);
 
     ClassGenerator<T> root = cg.getRoot();
-    root.setMappingSet(new MappingSet(new GeneratorMapping("doOutside", null, null, null)));
+    root.setMappingSet(new MappingSet(GeneratorMapping.methods().setup("doOutside")));
     root.getSetupBlock().directStatement("System.out.println(\"outside\");");
 
 
     ClassGenerator<T> inner = root.getInnerGenerator("TheInnerClass");
-    inner.setMappingSet(new MappingSet(new GeneratorMapping("doInside", null, null, null)));
+    inner.setMappingSet(new MappingSet(GeneratorMapping.methods().setup("doInside")));
     inner.getSetupBlock().directStatement("System.out.println(\"inside\");");
 
     ClassGenerator<T> doubleInner = inner.getInnerGenerator("DoubleInner");
-    doubleInner.setMappingSet(new MappingSet(new GeneratorMapping("doDouble", null, null, null)));
+    doubleInner.setMappingSet(new MappingSet(GeneratorMapping.methods().setup("doDouble")));
     doubleInner.getSetupBlock().directStatement("System.out.println(\"double\");");
     return cg;
   }

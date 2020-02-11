@@ -51,10 +51,8 @@ public class ValueVectorHashHelper {
 
   private TemplateClassDefinition<Hash64> TEMPLATE_DEFINITION = new TemplateClassDefinition<Hash64>(Hash64.class, Hash64Template.class);
 
-  private static final GeneratorMapping DO_SETUP_CONSTANT = GeneratorMapping.create("doSetup" /* setup method */, "doSetup" /* eval method */, null /* reset */, null /* cleanup */);
-
-  private static final GeneratorMapping GET_HASH_BUILD_INNER = GeneratorMapping.create("doSetup" /* setup method */, "hash64Code" /* eval method */, null /* reset */, null /* cleanup */);
-
+  private static final GeneratorMapping DO_SETUP_CONSTANT = GeneratorMapping.methods().setup("doSetup").eval("doSetup");
+  private static final GeneratorMapping GET_HASH_BUILD_INNER = GeneratorMapping.methods().setup("doSetup").eval("hash64Code");
   private final MappingSet GetHashIncomingBuildColMapping = new MappingSet("incomingRowIdx", null, "incoming", null, DO_SETUP_CONSTANT, GET_HASH_BUILD_INNER);
 
   public ValueVectorHashHelper(RecordBatch recordBatch, FragmentContext context) {

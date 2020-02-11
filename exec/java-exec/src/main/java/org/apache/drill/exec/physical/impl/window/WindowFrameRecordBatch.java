@@ -324,17 +324,19 @@ public class WindowFrameRecordBatch extends AbstractRecordBatch<WindowPOP> {
 
     {
       // generating framer.isSamePartition()
-      GeneratorMapping IS_SAME_PARTITION_READ = GeneratorMapping.create("isSamePartition", "isSamePartition", null, null);
-      MappingSet isaB1 = new MappingSet("b1Index", null, "b1", null, IS_SAME_PARTITION_READ, IS_SAME_PARTITION_READ);
-      MappingSet isaB2 = new MappingSet("b2Index", null, "b2", null, IS_SAME_PARTITION_READ, IS_SAME_PARTITION_READ);
+      GeneratorMapping isSamePartitionRead = GeneratorMapping.methods()
+          .setup("isSamePartition").eval("isSamePartition");
+      MappingSet isaB1 = new MappingSet("b1Index", null, "b1", null, isSamePartitionRead, isSamePartitionRead);
+      MappingSet isaB2 = new MappingSet("b2Index", null, "b2", null, isSamePartitionRead, isSamePartitionRead);
       setupIsFunction(cg, keyExprs, isaB1, isaB2);
     }
 
     {
       // generating framer.isPeer()
-      GeneratorMapping IS_SAME_PEER_READ = GeneratorMapping.create("isPeer", "isPeer", null, null);
-      MappingSet isaP1 = new MappingSet("b1Index", null, "b1", null, IS_SAME_PEER_READ, IS_SAME_PEER_READ);
-      MappingSet isaP2 = new MappingSet("b2Index", null, "b2", null, IS_SAME_PEER_READ, IS_SAME_PEER_READ);
+      GeneratorMapping isSamePeerRead = GeneratorMapping.methods()
+          .setup("isPeer").eval("isPeer");
+      MappingSet isaP1 = new MappingSet("b1Index", null, "b1", null, isSamePeerRead, isSamePeerRead);
+      MappingSet isaP2 = new MappingSet("b2Index", null, "b2", null, isSamePeerRead, isSamePeerRead);
       // isPeer also checks if it's the same partition
       setupIsFunction(cg, Iterables.concat(keyExprs, orderExprs), isaP1, isaP2);
     }

@@ -39,7 +39,7 @@ public class MappingSet {
   private DirectExpression workspaceIndex;
 
   public MappingSet(GeneratorMapping mapping) {
-    this("inIndex", "outIndex", new GeneratorMapping[] { mapping, mapping });
+    this("inIndex", "outIndex", mapping, mapping);
   }
 
   public boolean hasEmbeddedConstant() {
@@ -72,7 +72,7 @@ public class MappingSet {
     // Make sure the constant GM is different from other GM. If it is identical, clone another copy.
     for (int i = 1; i < mappings.length; i++) {
       if (mappings[0] == mappings[i]) {
-        this.constant = new GeneratorMapping(mappings[0]);
+        this.constant = mappings[0].copy();
         break;
       }
     }

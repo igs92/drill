@@ -60,43 +60,34 @@ import com.sun.codemodel.JExpr;
 public class ChainedHashTable {
   static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ChainedHashTable.class);
 
-  private static final GeneratorMapping KEY_MATCH_BUILD =
-      GeneratorMapping.create("setupInterior" /* setup method */, "isKeyMatchInternalBuild" /* eval method */,
-          null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping KEY_MATCH_BUILD = GeneratorMapping.methods()
+      .setup("setupInterior").eval("isKeyMatchInternalBuild");
 
-  private static final GeneratorMapping BOTH_KEYS_NULL =
-    GeneratorMapping.create("setupInterior" /* setup method */, "areBothKeysNull" /* eval method */,
-      null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping BOTH_KEYS_NULL = GeneratorMapping.methods()
+      .setup("setupInterior").eval("areBothKeysNull");
 
-  private static final GeneratorMapping KEY_MATCH_PROBE =
-      GeneratorMapping.create("setupInterior" /* setup method */, "isKeyMatchInternalProbe" /* eval method */,
-          null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping KEY_MATCH_PROBE = GeneratorMapping.methods()
+      .setup("setupInterior").eval("isKeyMatchInternalProbe");
 
-  private static final GeneratorMapping GET_HASH_BUILD =
-      GeneratorMapping.create("doSetup" /* setup method */, "getHashBuild" /* eval method */,
-          null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping GET_HASH_BUILD = GeneratorMapping.methods()
+      .setup("doSetup").eval("getHashBuild");
 
-  private static final GeneratorMapping GET_HASH_PROBE =
-      GeneratorMapping.create("doSetup" /* setup method */, "getHashProbe" /* eval method */, null /* reset */,
-          null /* cleanup */);
+  private static final GeneratorMapping GET_HASH_PROBE = GeneratorMapping.methods()
+      .setup("doSetup").eval("getHashProbe");
 
-  private static final GeneratorMapping SET_VALUE =
-      GeneratorMapping.create("setupInterior" /* setup method */, "setValue" /* eval method */, null /* reset */,
-          null /* cleanup */);
+  private static final GeneratorMapping SET_VALUE = GeneratorMapping.methods()
+      .setup("setupInterior").eval("setValue");
 
-  private static final GeneratorMapping OUTPUT_KEYS =
-      GeneratorMapping.create("setupInterior" /* setup method */, "outputRecordKeys" /* eval method */,
-          null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping OUTPUT_KEYS = GeneratorMapping.methods()
+      .setup("setupInterior").eval("outputRecordKeys");
 
   // GM for putting constant expression into method "setupInterior"
-  private static final GeneratorMapping SETUP_INTERIOR_CONSTANT =
-      GeneratorMapping.create("setupInterior" /* setup method */, "setupInterior" /* eval method */,
-          null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping SETUP_INTERIOR_CONSTANT = GeneratorMapping.methods()
+      .setup("setupInterior").eval("setupInterior");
 
   // GM for putting constant expression into method "doSetup"
-  private static final GeneratorMapping DO_SETUP_CONSTANT =
-      GeneratorMapping.create("doSetup" /* setup method */, "doSetup" /* eval method */, null /* reset */,
-          null /* cleanup */);
+  private static final GeneratorMapping DO_SETUP_CONSTANT = GeneratorMapping.methods()
+      .setup("doSetup").eval("doSetup");
 
   private final MappingSet KeyMatchIncomingBuildMapping =
       new MappingSet("incomingRowIdx", null, "incomingBuild", null, SETUP_INTERIOR_CONSTANT, KEY_MATCH_BUILD);

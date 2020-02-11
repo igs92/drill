@@ -93,23 +93,18 @@ public class NestedLoopJoinBatch extends AbstractBinaryRecordBatch<NestedLoopJoi
 
 
   // Generator mapping for the right side
-  private static final GeneratorMapping EMIT_RIGHT =
-      GeneratorMapping.create("doSetup"/* setup method */, "emitRight" /* eval method */, null /* reset */,
-          null /* cleanup */);
+  private static final GeneratorMapping EMIT_RIGHT = GeneratorMapping.methods()
+      .setup("doSetup").eval("emitRight");
   // Generator mapping for the right side : constant
-  private static final GeneratorMapping EMIT_RIGHT_CONSTANT = GeneratorMapping.create("doSetup"/* setup method */,
-      "doSetup" /* eval method */,
-      null /* reset */, null /* cleanup */);
+  private static final GeneratorMapping EMIT_RIGHT_CONSTANT = GeneratorMapping.methods()
+      .setup("doSetup").eval("doSetup");
 
   // Generator mapping for the left side : scalar
-  private static final GeneratorMapping EMIT_LEFT =
-      GeneratorMapping.create("doSetup" /* setup method */, "emitLeft" /* eval method */, null /* reset */,
-          null /* cleanup */);
+  private static final GeneratorMapping EMIT_LEFT = GeneratorMapping.methods()
+      .setup("doSetup").eval("emitLeft");
   // Generator mapping for the left side : constant
-  private static final GeneratorMapping EMIT_LEFT_CONSTANT = GeneratorMapping.create("doSetup" /* setup method */,
-      "doSetup" /* eval method */,
-      null /* reset */, null /* cleanup */);
-
+  private static final GeneratorMapping EMIT_LEFT_CONSTANT = GeneratorMapping.methods()
+      .setup("doSetup").eval("doSetup");
 
   // Mapping set for the right side
   private final MappingSet emitRightMapping =
