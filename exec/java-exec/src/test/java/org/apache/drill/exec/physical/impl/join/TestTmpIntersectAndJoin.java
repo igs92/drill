@@ -23,12 +23,17 @@ import org.apache.drill.test.ClusterTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 public class TestTmpIntersectAndJoin extends ClusterTest {
 
   @BeforeClass
   public static void setUp() throws Exception {
+//    dirTestWatcher.copyFileToRoot(Paths.get("tmp", "studs.json"));
+//    dirTestWatcher.copyFileToRoot(Paths.get("tmp", "deps.json"));
     startCluster(ClusterFixture.builder(dirTestWatcher)
-        .configProperty(PlannerSettings.MERGEJOIN.getOptionName(), false)
+        .sessionOption(PlannerSettings.MERGEJOIN.getOptionName(), false)
+        .sessionOption(PlannerSettings.STREAMAGG.getOptionName(), false)
     );
   }
 
@@ -93,5 +98,61 @@ public class TestTmpIntersectAndJoin extends ClusterTest {
     queryBuilder()
         .sql(sql)
         .run();
+  }
+
+  @Test
+  public void outStudentsAndDeps() throws Exception {
+    String sql = "SELECT s.full_name, d.dept_name " +
+        "FROM cp.`tmp/studs.json` s " +
+        "INNER JOIN cp.`tmp/depts.json` d " +
+        "ON s.dept_id = d.id";
+
+    if (false) {
+      outPlan(sql);
+    }
+
+    queryBuilder()
+        .sql(sql)
+        .print();
+  }
+
+  @Test
+  public void countStudentsByDepsNoJoin() throws Exception {
+    String sql = "SELECT s.dept_id, count(s.dept_id) " +
+        "FROM cp.`tmp/studs.json` s " +
+        "GROUP BY s.dept_id";
+    if (false) {
+      outPlan(sql);
+    }
+
+    queryBuilder()
+        .sql(sql)
+        .print();
+  }
+
+
+
+  @Test
+  public void countStudentsByDepsWithJoin() throws Exception {
+    String sql = "SELECT d.dept_name, count(s.dept_id) " +
+        "FROM cp.`tmp/depts.json` d " +
+        "INNER JOIN cp.`tmp/studs.json` s " +
+        "ON s.dept_id = d.id " +
+        "GROUP BY d.dept_name";
+
+    if (true) {
+      outPlan(sql);
+    }
+
+    queryBuilder()
+        .sql(sql)
+        .print();
+  }
+
+  private void outPlan(String sql) throws Exception {
+    String plan = queryBuilder()
+        .sql(sql)
+        .explainText();
+    System.out.println(plan);
   }
 }
