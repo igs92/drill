@@ -58,7 +58,7 @@ public class WorkspaceReference {
 
   @Override
   public String toString() {
-    return "WorkspaceReference [type= " + type +", major type=" + Types.toString(majorType) + ", name=" + name + "]";
+    return "WorkspaceReference [type=" + type.getSimpleName() +",majorType=" + Types.toString(majorType) + ",name=" + name + "]";
   }
 
 }

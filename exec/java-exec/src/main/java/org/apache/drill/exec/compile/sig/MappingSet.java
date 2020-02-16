@@ -145,4 +145,19 @@ public class MappingSet {
     return workspace != null;
   }
 
+  @Override
+  public String toString() {
+    return "MappingSet{" +
+        "mappingIndex=" + mappingIndex +
+        ", readIndex=" + readIndex +
+        ", writeIndex=" + writeIndex +
+        ", incoming=" + incoming +
+        ", outgoing=" + outgoing +
+        ", workspace=" + workspace +
+        ", workspaceIndex=" + workspaceIndex +
+        "\n,constant=" + constant +
+        "\n, current=" + current +
+        "\n, mappings=" + Arrays.toString(mappings) +
+        '}';
+  }
 }

@@ -29,6 +29,7 @@ import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.expr.ClassGenerator;
 import org.apache.drill.exec.expr.ClassGenerator.BlockType;
 import org.apache.drill.exec.expr.ClassGenerator.HoldingContainer;
+import org.apache.drill.exec.expr.DirectExpression;
 import org.apache.drill.exec.expr.annotations.FunctionTemplate.NullHandling;
 import org.apache.drill.exec.record.TypedFieldId;
 
@@ -154,32 +155,48 @@ class DrillAggFuncHolder extends DrillFuncHolder {
 
 
   private JVar[] declareWorkspaceVectors(ClassGenerator<?> g) {
-    JVar[] workspaceJVars = new JVar[getWorkspaceVars().length];
+    WorkspaceReference[] workspaceRefs = getWorkspaceVars();
+    JVar[] workspaceJVars = new JVar[workspaceRefs.length];
 
-    for (int i = 0; i < getWorkspaceVars().length; i++) {
-      if (getWorkspaceVars()[i].isInject()) {
-        workspaceJVars[i] = g.declareClassField("work", g.getModel()._ref(getWorkspaceVars()[i].getType()));
-        g.getBlock(BlockType.SETUP).assign(workspaceJVars[i], g.getMappingSet().getIncoming().invoke("getContext").invoke("getManagedBuffer"));
+    for (int i = 0; i < workspaceRefs.length; i++) {
+      WorkspaceReference workspaceRef = workspaceRefs[i];
+      JVar workJVar;
+
+      if (workspaceRef.isInject()) {
+        workJVar = g.declareClassField("work", g.getModel()._ref(workspaceRef.getType()));
+
+        DirectExpression incoming = g.getMappingSet().getIncoming();
+        JInvocation managedBuffer = incoming.invoke("getContext").invoke("getManagedBuffer");
+
+        g.getBlock(BlockType.SETUP).assign(workJVar, managedBuffer);
       } else {
-        Preconditions.checkState(Types.isFixedWidthType(getWorkspaceVars()[i].getMajorType()), String.format("Workspace variable '%s' in aggregation function '%s' is not allowed to " +
-            "have variable length type.", getWorkspaceVars()[i].getName(), getRegisteredNames()[0]));
-        Preconditions.checkState(getWorkspaceVars()[i].getMajorType().getMode()==DataMode.REQUIRED, String.format("Workspace variable '%s' in aggregation function '%s' is not allowed" +
-            " to have null or repeated type.", getWorkspaceVars()[i].getName(), getRegisteredNames()[0]));
-
-        //workspaceJVars[i] = g.declareClassField("work", g.getHolderType(workspaceVars[i].majorType), JExpr._new(g.getHolderType(workspaceVars[i].majorType)));
-        workspaceJVars[i] = g.declareClassField("work", g.getHolderType(getWorkspaceVars()[i].getMajorType()));
+        ensureRefTypeIsRequiredAndFixed(workspaceRef);
+        workJVar = g.declareClassField("work", g.getHolderType(workspaceRef.getMajorType()));
 
         //Declare a workspace vector for the workspace var.
-        TypedFieldId typedFieldId = new TypedFieldId.Builder().finalType(getWorkspaceVars()[i].getMajorType())
+        TypedFieldId typedFieldId = new TypedFieldId.Builder()
+            .finalType(workspaceRef.getMajorType())
             .addId(g.getWorkspaceTypes().size())
             .build();
         JVar vv  = g.declareVectorValueSetupAndMember(g.getMappingSet().getWorkspace(), typedFieldId);
 
         g.getWorkspaceTypes().add(typedFieldId);
-        g.getWorkspaceVectors().put(getWorkspaceVars()[i], vv);
+        g.getWorkspaceVectors().put(workspaceRef, vv);
       }
+
+      workspaceJVars[i] = workJVar;
     }
     return workspaceJVars;
+  }
+
+  private void ensureRefTypeIsRequiredAndFixed(WorkspaceReference workspaceRef) {
+    MajorType majorType = workspaceRef.getMajorType();
+    Preconditions.checkState(Types.isFixedWidthType(majorType),
+        String.format("Workspace variable '%s' in aggregation function '%s' is not allowed to " +
+        "have variable length type.", workspaceRef.getName(), getRegisteredNames()[0]));
+    Preconditions.checkState(majorType.getMode()== DataMode.REQUIRED,
+        String.format("Workspace variable '%s' in aggregation function '%s' is not allowed" +
+        " to have null or repeated type.", workspaceRef.getName(), getRegisteredNames()[0]));
   }
 
   private JBlock generateInitWorkspaceBlockHA(ClassGenerator<?> g, BlockType bt, String body, JVar[] workspaceJVars, JExpression wsIndexVariable){

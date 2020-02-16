@@ -19,15 +19,21 @@ package org.apache.drill.exec.physical.impl.aggregate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.expr.DrillFuncHolderExpr;
+import org.apache.drill.exec.expr.fn.FunctionLookupContext;
 import org.apache.drill.exec.planner.physical.AggPrelBase;
 import org.apache.drill.exec.record.VectorContainer;
+import org.apache.drill.exec.vector.BigIntVector;
 import org.apache.drill.exec.vector.UntypedNullHolder;
 import org.apache.drill.exec.vector.UntypedNullVector;
 import org.apache.drill.exec.vector.complex.writer.BaseWriter;
@@ -84,11 +90,11 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
 
   private HashAggregator aggregator;
   protected RecordBatch incoming;
-  private LogicalExpression[] aggrExprs;
+  private BatchSchema incomingSchema;
+
   private TypedFieldId[] groupByOutFieldIds;
   private TypedFieldId[] aggrOutFieldIds;      // field ids for the outgoing batch
-  private final List<Comparator> comparators;
-  private BatchSchema incomingSchema;
+
   private boolean wasKilled;
   private List<BaseWriter.ComplexWriter> complexWriters;
 
@@ -183,15 +189,10 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
 
   public HashAggBatch(HashAggregate popConfig, RecordBatch incoming, FragmentContext context) {
     super(popConfig, context);
+    this.numGroupByExprs = (getKeyExpressions() != null) ? getKeyExpressions().size() : 0;
+    this.numAggrExprs = (getValueExpressions() != null) ? getValueExpressions().size() : 0;
     this.incoming = incoming;
-    wasKilled = false;
-
-    final int numGrpByExprs = popConfig.getGroupByExprs().size();
-    comparators = Lists.newArrayListWithExpectedSize(numGrpByExprs);
-    for (int i=0; i<numGrpByExprs; i++) {
-      // nulls are equal in group by case
-      comparators.add(Comparator.IS_NOT_DISTINCT_FROM);
-    }
+    this.wasKilled = false;
 
     // This operator manages its memory use. Ask for leniency
     // from the allocator to allow for slight errors due to the
@@ -220,11 +221,11 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
       configuredBatchSize = reducedBatchSize;
     }
 
-    hashAggMemoryManager = new HashAggMemoryManager(configuredBatchSize);
+    this.hashAggMemoryManager = new HashAggMemoryManager(configuredBatchSize);
 
     RecordBatchStats.printConfiguredBatchSize(getRecordBatchStatsContext(), configuredBatchSize);
 
-    columnMapping = CaseInsensitiveMap.newHashMap();
+    this.columnMapping = CaseInsensitiveMap.newHashMap();
   }
 
   @Override
@@ -373,44 +374,78 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
 
   protected HashAggregator createAggregatorInternal() {
     CodeGenerator<HashAggregator> top = CodeGenerator.get(HashAggregator.TEMPLATE_DEFINITION, context.getOptions());
-    ClassGenerator<HashAggregator> cg = top.getRoot();
-    ClassGenerator<HashAggregator> cgInner = cg.getInnerGenerator("BatchHolder");
+    ClassGenerator<HashAggregator> rootHashAggClassGen = top.getRoot();
+    ClassGenerator<HashAggregator> innerBatchHolderClassGen = rootHashAggClassGen.getInnerGenerator("BatchHolder");
     top.plainJavaCapable(true);
     // Uncomment the following line to allow debugging of the template code
      top.saveCodeForDebugging(true);
     container.clear();
 
-    numGroupByExprs = (getKeyExpressions() != null) ? getKeyExpressions().size() : 0;
-    numAggrExprs = (getValueExpressions() != null) ? getValueExpressions().size() : 0;
-    aggrExprs = new LogicalExpression[numAggrExprs];
-    groupByOutFieldIds = new TypedFieldId[numGroupByExprs];
-    aggrOutFieldIds = new TypedFieldId[numAggrExprs];
-
     ErrorCollector collector = new ErrorCollectorImpl();
+    groupByOutFieldIds = addGroupByFieldsToContainer(collector);
 
-    for (int i = 0; i < numGroupByExprs; i++) {
-      NamedExpression ne = getKeyExpressions().get(i);
-      final LogicalExpression expr =
-          ExpressionTreeMaterializer.materialize(ne.getExpr(), incoming, collector, context.getFunctionRegistry());
-      if (expr == null) {
-        continue;
-      }
+    // each of SUM, MAX and MIN gets an extra bigint column
+    AtomicInteger extraBigIntColumnsCount = new AtomicInteger();
+    LogicalExpression[] aggrExprs = materializeAggregationExpressions(collector, extraBigIntColumnsCount);
 
-      final MaterializedField outputField = MaterializedField.create(ne.getRef().getAsNamePart().getName(), expr.getMajorType());
-      ValueVector vv = TypeHelper.getNewVector(outputField, oContext.getAllocator());
+    setupUpdateAggrValues(innerBatchHolderClassGen, aggrExprs);
+    setupGetIndex(rootHashAggClassGen);
+    rootHashAggClassGen.getBlock("resetValues")._return(JExpr.TRUE);
 
-      // add this group-by vector to the output container
-      groupByOutFieldIds[i] = container.add(vv);
-      columnMapping.put(outputField.getName(), ne.getExpr().toString().replace('`',' ').trim());
-    }
+    container.buildSchema(SelectionVectorMode.NONE);
 
-    int extraNonNullColumns = 0; // each of SUM, MAX and MIN gets an extra bigint column
+    HashAggregator agg = context.getImplementationClass(top);
+
+    HashTableConfig htConfig = createHashTableConfig();
+
+    agg.setup(popConfig, htConfig, context, oContext, incoming, this,
+        aggrExprs,
+        innerBatchHolderClassGen.getWorkspaceTypes(),
+        innerBatchHolderClassGen,
+        groupByOutFieldIds,
+        container,
+        extraBigIntColumnsCount.get() * BigIntVector.VALUE_WIDTH);
+
+    return agg;
+  }
+
+  private HashTableConfig createHashTableConfig() {
+    // nulls are equal in group by case
+    List<Comparator> comparators = IntStream.range(0, numGroupByExprs)
+        .mapToObj(i -> Comparator.IS_NOT_DISTINCT_FROM)
+        .collect(Collectors.toList());
+    int initialCapacity = (int) context.getOptions().getOption(ExecConstants.MIN_HASH_TABLE_SIZE);
+
+    return new HashTableConfig(initialCapacity, HashTable.DEFAULT_LOAD_FACTOR, getKeyExpressions(),
+        null /* no probe exprs */, comparators);
+  }
+
+  /**
+   * Main purpose of the method is to get materialized value expressions (usually aggregation function calls, like count(), sum() etc.)
+   * into array. But along with this materialization multiple additional tasks are performed:
+   * <ul>
+   *  <li>aggregation expression fields are added to container</li>
+   *  <li>{@param extraNonNullColumns} counter gets incremented for SUM(), MAX() and MIN() function calls<li/>
+   *  <li>updated {@link #columnMapping} for associating incoming/outgoing column names<li/>
+   * <ul/>
+   *
+   * @param collector collects materialization errors
+   * @param extraNonNullColumns side effect counter used later to take into account extra columns
+   * @return materialized aggregation value expressions
+   */
+  private LogicalExpression[] materializeAggregationExpressions(ErrorCollector collector, AtomicInteger extraNonNullColumns) {
+    LogicalExpression[] aggrExprs = new LogicalExpression[numAggrExprs];
+    aggrOutFieldIds = new TypedFieldId[numAggrExprs];
+    List<NamedExpression> valueExpressions = getValueExpressions();
+    FunctionLookupContext functionRegistry = context.getFunctionRegistry();
     for (int i = 0; i < numAggrExprs; i++) {
-      NamedExpression ne = getValueExpressions().get(i);
-      final LogicalExpression expr = ExpressionTreeMaterializer.materialize(ne.getExpr(), incoming, collector, context.getFunctionRegistry());
+      NamedExpression ne = valueExpressions.get(i);
+      final LogicalExpression expr = ExpressionTreeMaterializer.materialize(ne.getExpr(), incoming, collector, functionRegistry);
 
       if (expr instanceof IfExpression) {
-        throw UserException.unsupportedError(new UnsupportedOperationException("Union type not supported in aggregate functions")).build(logger);
+        throw UserException.unsupportedError(
+            new UnsupportedOperationException("Union type not supported in aggregate functions"))
+            .build(logger);
       }
 
       collector.reportErrors(logger);
@@ -441,15 +476,20 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
 
         if (expr instanceof FunctionHolderExpression) {
           String funcName = ((FunctionHolderExpression) expr).getName();
-          if (funcName.equals("sum") || funcName.equals("max") || funcName.equals("min")) {
-            extraNonNullColumns++;
+          switch (funcName) {
+            case "sum":
+            case "max":
+            case "min":
+              extraNonNullColumns.incrementAndGet();
+              break;
           }
           List<LogicalExpression> args = ((FunctionCall) ne.getExpr()).args;
           if (!args.isEmpty()) {
-            if (args.get(0) instanceof SchemaPath) {
-              columnMapping.put(outputField.getName(), ((SchemaPath) args.get(0)).getAsNamePart().getName());
-            } else if (args.get(0) instanceof FunctionCall) {
-              FunctionCall functionCall = (FunctionCall) args.get(0);
+            LogicalExpression firstArg = args.get(0);
+            if (firstArg instanceof SchemaPath) {
+              columnMapping.put(outputField.getName(), ((SchemaPath) firstArg).getAsNamePart().getName());
+            } else if (firstArg instanceof FunctionCall) {
+              FunctionCall functionCall = (FunctionCall) firstArg;
               if (functionCall.args.get(0) instanceof SchemaPath) {
                 columnMapping.put(outputField.getName(), ((SchemaPath) functionCall.args.get(0)).getAsNamePart().getName());
               }
@@ -460,27 +500,28 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
         }
       }
     }
+    return aggrExprs;
+  }
 
-    setupUpdateAggrValues(cgInner);
-    setupGetIndex(cg);
-    cg.getBlock("resetValues")._return(JExpr.TRUE);
+  private TypedFieldId[] addGroupByFieldsToContainer(ErrorCollector collector) {
+    TypedFieldId[] groupByOutFieldIds = new TypedFieldId[numGroupByExprs];
+    FunctionLookupContext functionRegistry = context.getFunctionRegistry();
+    List<NamedExpression> keyExpressions = getKeyExpressions();
+    for (int i = 0; i < numGroupByExprs; i++) {
+      NamedExpression ne = keyExpressions.get(i);
+      LogicalExpression expr = ExpressionTreeMaterializer.materialize(ne.getExpr(), incoming, collector, functionRegistry);
+      if (expr == null) {
+        continue;
+      }
 
-    container.buildSchema(SelectionVectorMode.NONE);
-    HashAggregator agg = context.getImplementationClass(top);
+      MaterializedField outputField = MaterializedField.create(ne.getRef().getAsNamePart().getName(), expr.getMajorType());
+      ValueVector vv = TypeHelper.getNewVector(outputField, oContext.getAllocator());
 
-    HashTableConfig htConfig =
-        // TODO - fix the validator on this option
-        new HashTableConfig((int)context.getOptions().getOption(ExecConstants.MIN_HASH_TABLE_SIZE),
-            HashTable.DEFAULT_LOAD_FACTOR, getKeyExpressions(), null /* no probe exprs */, comparators);
-
-    agg.setup(popConfig, htConfig, context, oContext, incoming, this,
-        aggrExprs,
-        cgInner.getWorkspaceTypes(),
-        cgInner,
-        groupByOutFieldIds,
-        this.container, extraNonNullColumns * 8 /* sizeof(BigInt) */);
-
-    return agg;
+      // add this group-by vector to the output container
+      groupByOutFieldIds[i] = container.add(vv);
+      columnMapping.put(outputField.getName(), ne.getExpr().toString().replace('`',' ').trim());
+    }
+    return groupByOutFieldIds;
   }
 
   protected List<NamedExpression> getKeyExpressions() {
@@ -491,7 +532,7 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
     return popConfig.getAggrExprs();
   }
 
-  private void setupUpdateAggrValues(ClassGenerator<HashAggregator> cg) {
+  private void setupUpdateAggrValues(ClassGenerator<HashAggregator> cg, LogicalExpression[] aggrExprs) {
     cg.setMappingSet(UpdateAggrValuesMapping);
 
     for (LogicalExpression aggr : aggrExprs) {
@@ -520,35 +561,6 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
     }
   }
 
-  private void updateStats() {
-    stats.setLongStat(HashAggTemplate.Metric.INPUT_BATCH_COUNT, hashAggMemoryManager.getNumIncomingBatches());
-    stats.setLongStat(HashAggTemplate.Metric.AVG_INPUT_BATCH_BYTES, hashAggMemoryManager.getAvgInputBatchSize());
-    stats.setLongStat(HashAggTemplate.Metric.AVG_INPUT_ROW_BYTES, hashAggMemoryManager.getAvgInputRowWidth());
-    stats.setLongStat(HashAggTemplate.Metric.INPUT_RECORD_COUNT, hashAggMemoryManager.getTotalInputRecords());
-    stats.setLongStat(HashAggTemplate.Metric.OUTPUT_BATCH_COUNT, hashAggMemoryManager.getNumOutgoingBatches());
-    stats.setLongStat(HashAggTemplate.Metric.AVG_OUTPUT_BATCH_BYTES, hashAggMemoryManager.getAvgOutputBatchSize());
-    stats.setLongStat(HashAggTemplate.Metric.AVG_OUTPUT_ROW_BYTES, hashAggMemoryManager.getAvgOutputRowWidth());
-    stats.setLongStat(HashAggTemplate.Metric.OUTPUT_RECORD_COUNT, hashAggMemoryManager.getTotalOutputRecords());
-
-    RecordBatchStats.logRecordBatchStats(getRecordBatchStatsContext(),
-      "incoming aggregate: count : %d, avg bytes : %d,  avg row bytes : %d, record count : %d",
-      hashAggMemoryManager.getNumIncomingBatches(), hashAggMemoryManager.getAvgInputBatchSize(),
-      hashAggMemoryManager.getAvgInputRowWidth(), hashAggMemoryManager.getTotalInputRecords());
-
-    RecordBatchStats.logRecordBatchStats(getRecordBatchStatsContext(),
-      "outgoing aggregate: count : %d, avg bytes : %d,  avg row bytes : %d, record count : %d",
-      hashAggMemoryManager.getNumOutgoingBatches(), hashAggMemoryManager.getAvgOutputBatchSize(),
-      hashAggMemoryManager.getAvgOutputRowWidth(), hashAggMemoryManager.getTotalOutputRecords());
-  }
-  @Override
-  public void close() {
-    if (aggregator != null) {
-      aggregator.cleanup();
-    }
-    updateStats();
-    super.close();
-  }
-
   @Override
   protected void killIncoming(boolean sendUpstream) {
     wasKilled = true;
@@ -561,5 +573,35 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
             "incomingSchema={}, wasKilled={}, numGroupByExprs={}, numAggrExprs={}, popConfig={}]",
         container, aggregator, Arrays.toString(groupByOutFieldIds), Arrays.toString(aggrOutFieldIds), incomingSchema,
         wasKilled, numGroupByExprs, numAggrExprs, popConfig);
+  }
+
+  @Override
+  public void close() {
+    if (aggregator != null) {
+      aggregator.cleanup();
+    }
+    updateStats();
+    super.close();
+  }
+
+  private void updateStats() {
+    stats.setLongStat(HashAggTemplate.Metric.INPUT_BATCH_COUNT, hashAggMemoryManager.getNumIncomingBatches());
+    stats.setLongStat(HashAggTemplate.Metric.AVG_INPUT_BATCH_BYTES, hashAggMemoryManager.getAvgInputBatchSize());
+    stats.setLongStat(HashAggTemplate.Metric.AVG_INPUT_ROW_BYTES, hashAggMemoryManager.getAvgInputRowWidth());
+    stats.setLongStat(HashAggTemplate.Metric.INPUT_RECORD_COUNT, hashAggMemoryManager.getTotalInputRecords());
+    stats.setLongStat(HashAggTemplate.Metric.OUTPUT_BATCH_COUNT, hashAggMemoryManager.getNumOutgoingBatches());
+    stats.setLongStat(HashAggTemplate.Metric.AVG_OUTPUT_BATCH_BYTES, hashAggMemoryManager.getAvgOutputBatchSize());
+    stats.setLongStat(HashAggTemplate.Metric.AVG_OUTPUT_ROW_BYTES, hashAggMemoryManager.getAvgOutputRowWidth());
+    stats.setLongStat(HashAggTemplate.Metric.OUTPUT_RECORD_COUNT, hashAggMemoryManager.getTotalOutputRecords());
+
+    RecordBatchStats.logRecordBatchStats(getRecordBatchStatsContext(),
+        "incoming aggregate: count : %d, avg bytes : %d,  avg row bytes : %d, record count : %d",
+        hashAggMemoryManager.getNumIncomingBatches(), hashAggMemoryManager.getAvgInputBatchSize(),
+        hashAggMemoryManager.getAvgInputRowWidth(), hashAggMemoryManager.getTotalInputRecords());
+
+    RecordBatchStats.logRecordBatchStats(getRecordBatchStatsContext(),
+        "outgoing aggregate: count : %d, avg bytes : %d,  avg row bytes : %d, record count : %d",
+        hashAggMemoryManager.getNumOutgoingBatches(), hashAggMemoryManager.getAvgOutputBatchSize(),
+        hashAggMemoryManager.getAvgOutputRowWidth(), hashAggMemoryManager.getTotalOutputRecords());
   }
 }

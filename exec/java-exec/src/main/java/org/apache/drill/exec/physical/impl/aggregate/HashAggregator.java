@@ -70,26 +70,26 @@ public interface HashAggregator {
              OperatorContext oContext, RecordBatch incoming, HashAggBatch outgoing,
              LogicalExpression[] valueExprs, List<TypedFieldId> valueFieldIds, ClassGenerator<?> cg,
              TypedFieldId[] keyFieldIds, VectorContainer outContainer, int extraRowBytes);
-
+  // todo: javadoc ?
   IterOutcome getOutcome();
-
+  // todo: javadoc ?
   int getOutputCount();
-
+  // todo: javadoc ?
   AggOutcome doWork();
-
+  // todo: javadoc ?
   void cleanup();
-
+  // todo: javadoc ?
   boolean allFlushed();
-
+  // todo: javadoc ?
   boolean buildComplete();
-
+  // todo: javadoc ?
   boolean handlingEmit();
-
+  // todo: javadoc ?
   AggIterOutcome outputCurrentBatch();
-
+  // todo: javadoc ?
   boolean earlyOutput();
-
+  // todo: javadoc ?
   RecordBatch getNewIncoming();
-
+  // todo: javadoc ?
   void adjustOutputCount(int outputBatchSize, int oldRowWidth, int newRowWidth);
 }

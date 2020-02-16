@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import org.apache.drill.common.exceptions.UserException;
+import org.apache.drill.shaded.guava.com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,13 +109,10 @@ public class AutoCloseables {
    * @param closeables array containing auto closeables
    */
   public static void closeSilently(AutoCloseable... closeables) {
-    Arrays.stream(closeables).filter(Objects::nonNull)
-        .forEach(target -> {
-          try {
-            target.close();
-          } catch (Exception e) {
-            logger.warn("Exception was thrown while closing auto closeable: {}", target, e);
-          }
-        });
+    try {
+      close(() -> Arrays.stream(closeables).iterator());
+    } catch (Exception e) {
+      // ignore
+    }
   }
 }

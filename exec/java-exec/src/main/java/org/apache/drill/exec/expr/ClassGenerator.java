@@ -917,4 +917,9 @@ public class ClassGenerator<T> {
   public JType getHolderType(MajorType t) {
     return TypeHelper.getHolderType(model, t.getMinorType(), t.getMode());
   }
+
+  @Override
+  public String toString() {
+    return "ClassGenerator[class=" + (clazz == null ? "null" : clazz.name()) + "]";
+  }
 }

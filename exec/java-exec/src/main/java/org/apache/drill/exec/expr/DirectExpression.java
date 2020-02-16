@@ -74,4 +74,9 @@ public class DirectExpression extends JExpressionImpl {
     }
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "DirectExpr[" + source + "]";
+  }
 }

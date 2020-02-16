@@ -18,6 +18,11 @@
 package org.apache.drill.exec.expr;
 
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JFormatter;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Objects;
 
 /**
  * Uses this class to keep track # of Drill Logical Expressions that are
@@ -26,11 +31,17 @@ import com.sun.codemodel.JBlock;
  * JBlock is final class; we could not extend JBlock directly.
  */
 public class SizedJBlock {
+  /**
+   * Wrapped {@code JBlock} instance
+   */
   private final JBlock block;
-  private int count; // # of Drill Logical Expressions added to this block
+  /**
+   * Amount of Drill logical expressions added to the logical block.
+   */
+  private int count;
 
   public SizedJBlock(JBlock block) {
-    this.block = block;
+    this.block = Objects.requireNonNull(block, "Cannot create sized block if underlying block is null");
     // Project, Filter and Aggregator receives JBlock, using ClassGenerator.addExpr() method,
     // but the Copier is doing kind of short-cut handling, by accessing the eval() and setup() directly.
     // To take into account JBlocks, that were filled in Copier, sets count to 1.
@@ -49,4 +60,19 @@ public class SizedJBlock {
     return this.count;
   }
 
+  @Override
+  public String toString() {
+    return "SizedJBlock{count="+count+",contents="+compressedBlock()+"}";
+  }
+
+  /**
+   * Created for toString() to simplify debugging experience.
+   * @return string contents of {@link #block}
+   */
+  private String compressedBlock() {
+    StringWriter s = new StringWriter();
+    JFormatter f = new JFormatter(new PrintWriter(s));
+    block.generate(f);
+    return s.toString().replaceAll("[\\n\\s]", "");
+  }
 }

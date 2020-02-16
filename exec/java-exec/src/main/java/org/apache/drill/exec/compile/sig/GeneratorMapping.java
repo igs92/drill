@@ -22,6 +22,8 @@ import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The code generator works with four conceptual methods which can
@@ -94,5 +96,12 @@ public class GeneratorMapping {
   private GeneratorMapping put(BlockType type, String methodName) {
     map.put(type, methodName);
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return map.entrySet().stream()
+        .map(e -> e.getKey() + "->" + e.getValue())
+        .collect(Collectors.joining(",", "GeneratorMapping[", "]"));
   }
 }

@@ -113,29 +113,28 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
     } finally {
       stats.startProcessing();
     }
+    updateBatchReceivedStats(inputIndex, b, next);
+    return next;
+  }
 
-    if (b instanceof SpilledRecordBatch) {
+  private void updateBatchReceivedStats(int inputIndex, RecordBatch b, IterOutcome next) {
+    if (!(b instanceof SpilledRecordBatch)) {
       // Don't double count records which were already read and spilled.
       // TODO evaluate whether swapping out upstream record batch with a SpilledRecordBatch
       // is the right thing to do.
-      return next;
+      logger.debug("Received next batch for index: {} with outcome: {}", inputIndex, next);
+      boolean newSchema = false;
+      switch (next) {
+        case OK_NEW_SCHEMA:
+          newSchema = true;
+          //~fallthrough
+        case OK:
+        case EMIT:
+          stats.batchReceived(inputIndex, b.getRecordCount(), newSchema);
+          logger.debug("Number of records in received batch: {}", b.getRecordCount());
+          break;
+      }
     }
-
-    boolean isNewSchema = false;
-    logger.debug("Received next batch for index: {} with outcome: {}", inputIndex, next);
-    switch (next) {
-      case OK_NEW_SCHEMA:
-        isNewSchema = true;
-      case OK:
-      case EMIT:
-        stats.batchReceived(inputIndex, b.getRecordCount(), isNewSchema);
-        logger.debug("Number of records in received batch: {}", b.getRecordCount());
-        break;
-      default:
-        break;
-    }
-
-    return next;
   }
 
   @Override
@@ -143,26 +142,13 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
     try {
       stats.startProcessing();
       switch (state) {
-        case BUILD_SCHEMA: {
+        case BUILD_SCHEMA:
           buildSchema();
-          switch (state) {
-            case DONE:
-              lastOutcome = IterOutcome.NONE;
-              break;
-            case STOP:
-              lastOutcome = IterOutcome.STOP;
-              break;
-            default:
-              state = BatchState.FIRST;
-              lastOutcome = IterOutcome.OK_NEW_SCHEMA;
-              break;
-          }
+          changeBuildSchemaStateToFirst();
           break;
-        }
-        case DONE: {
+        case DONE:
           lastOutcome = IterOutcome.NONE;
           break;
-        }
         default:
           lastOutcome = innerNext();
           break;
@@ -173,7 +159,26 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
     }
   }
 
+  private void changeBuildSchemaStateToFirst() {
+    switch (state) {
+      case DONE:
+        lastOutcome = IterOutcome.NONE;
+        break;
+      case STOP:
+        lastOutcome = IterOutcome.STOP;
+        break;
+      default:
+        state = BatchState.FIRST;
+        lastOutcome = IterOutcome.OK_NEW_SCHEMA;
+        break;
+    }
+  }
+
   public abstract IterOutcome innerNext();
+
+  protected void buildSchema() {
+    // noop
+  }
 
   @Override
   public BatchSchema getSchema() {
@@ -183,8 +188,6 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
       return null;
     }
   }
-
-  protected void buildSchema() { }
 
   @Override
   public void kill(boolean sendUpstream) {
@@ -246,16 +249,6 @@ public abstract class AbstractRecordBatch<T extends PhysicalOperator> implements
 
   public boolean isRecordBatchStatsLoggingEnabled() {
     return batchStatsContext.isEnableBatchSzLogging();
-  }
-
-  /**
-   * Checks if the query should continue. Throws a UserException if not.
-   * Operators should call this periodically to detect cancellation
-   * requests. The operator need not catch the exception: it will bubble
-   * up the operator tree and be handled like any other fatal error.
-   */
-  public void checkContinue() {
-    context.getExecutorState().checkContinue();
   }
 
   protected UserException schemaChangeException(SchemaChangeException e, Logger logger) {

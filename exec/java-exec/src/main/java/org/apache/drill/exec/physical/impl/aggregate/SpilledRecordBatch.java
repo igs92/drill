@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.aggregate;
 
+import org.apache.drill.common.AutoCloseables;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.exec.cache.VectorAccessibleSerializable;
@@ -133,11 +134,10 @@ public class SpilledRecordBatch implements CloseableRecordBatch {
    */
   @Override
   public IterOutcome next() {
-
-    context.getExecutorState().checkContinue();
+    checkContinue();
 
     if (spilledBatches <= 0) { // no more batches to read in this partition
-      this.close();
+      close();
       lastOutcome = IterOutcome.NONE;
       return lastOutcome;
     }
@@ -197,16 +197,7 @@ public class SpilledRecordBatch implements CloseableRecordBatch {
   @Override
   public void close() {
     container.clear();
-    try {
-      if (spillStream != null) {
-        spillStream.close();
-        spillStream = null;
-      }
-
-      spillSet.delete(spillFile);
-    }
-    catch (IOException e) {
-      // ignore
-    }
+    AutoCloseables.closeSilently(spillStream, () -> spillSet.delete(spillFile));
+    spillStream = null;
   }
 }

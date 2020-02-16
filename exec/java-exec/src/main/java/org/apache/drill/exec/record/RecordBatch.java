@@ -103,7 +103,7 @@ public interface RecordBatch extends VectorAccessible {
    *
    * The former <tt>OUT_OF_MEMORY</tt> state was never really used.
    * It is now handled by calling
-   * {@link FragmentContext#requestMemory()}
+   * {@link FragmentContext#requestMemory(RecordBatch)}
    * at the point that the operator realizes it is short on memory.
    */
   enum IterOutcome {
@@ -325,4 +325,15 @@ public interface RecordBatch extends VectorAccessible {
    * during execution of the batch; {@code false} otherwise
    */
   boolean hasFailed();
+
+  /**
+   * Checks if the query should continue. Throws a UserException if not.
+   * Operators should call this periodically to detect cancellation
+   * requests. The operator need not catch the exception: it will bubble
+   * up the operator tree and be handled like any other fatal error.
+   */
+  default void checkContinue() {
+    getContext().getExecutorState().checkContinue();
+  }
+
 }
