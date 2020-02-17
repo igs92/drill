@@ -340,6 +340,7 @@ public enum PlannerPhase {
        */
       RuleInstance.EXPAND_CONVERSION_RULE,
       DrillScanRule.INSTANCE,
+      DrillScanRule.INSTANCE_PRUNED,
       DrillFilterRule.INSTANCE,
       DrillProjectRule.INSTANCE,
       DrillWindowRule.INSTANCE,

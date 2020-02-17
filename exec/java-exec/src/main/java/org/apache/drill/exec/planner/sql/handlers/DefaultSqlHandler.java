@@ -210,18 +210,12 @@ public class DefaultSqlHandler extends AbstractSqlHandler {
    * @throws SqlUnsupportedException if query cannot be planned
    */
   protected DrillRel convertToRawDrel(final RelNode relNode) throws SqlUnsupportedException {
-    if (context.getOptions().getOption(ExecConstants.EARLY_LIMIT0_OPT) &&
-        context.getPlannerSettings().isTypeInferenceEnabled() &&
-        FindLimit0Visitor.containsLimit0(relNode)) {
-      // if the schema is known, return the schema directly
-      final DrillRel shorterPlan;
-      if ((shorterPlan = FindLimit0Visitor.getDirectScanRelIfFullySchemaed(relNode)) != null) {
-        return shorterPlan;
-      }
-
-      if (FindHardDistributionScans.canForceSingleMode(relNode)) {
-        // disable distributed mode
-        context.getPlannerSettings().forceSingleMode();
+    if (isLimitZeroOptimizationAvailable(relNode)) {
+      DrillRel schemaOnlyPlan = FindLimit0Visitor.getDirectScanRelIfFullySchemaed(relNode);
+      if (schemaOnlyPlan != null) {
+        return schemaOnlyPlan;
+      } else if (FindHardDistributionScans.canForceSingleMode(relNode)) {
+        context.getPlannerSettings().forceSingleMode(); // disable distributed mode
       }
     }
 
@@ -240,7 +234,7 @@ public class DefaultSqlHandler extends AbstractSqlHandler {
 
       } else {
         final RelNode intermediateNode2;
-        final RelNode intermediateNode3;
+
         if (context.getPlannerSettings().isHepPartitionPruningEnabled()) {
 
           final RelNode intermediateNode = transform(PlannerType.VOLCANO, PlannerPhase.LOGICAL, pruned, logicalTraits);
@@ -262,7 +256,7 @@ public class DefaultSqlHandler extends AbstractSqlHandler {
         }
 
         // Do Join Planning.
-        intermediateNode3 = transform(PlannerType.HEP_BOTTOM_UP, PlannerPhase.JOIN_PLANNING, intermediateNode2);
+        final RelNode intermediateNode3 = transform(PlannerType.HEP_BOTTOM_UP, PlannerPhase.JOIN_PLANNING, intermediateNode2);
 
         if (context.getPlannerSettings().isRowKeyJoinConversionEnabled()) {
           // Covert Join to RowKeyJoin, where applicable.
@@ -301,6 +295,12 @@ public class DefaultSqlHandler extends AbstractSqlHandler {
         throw ex;
       }
     }
+  }
+
+  private boolean isLimitZeroOptimizationAvailable(RelNode relNode) {
+    return context.getOptions().getOption(ExecConstants.EARLY_LIMIT0_OPT) &&
+        context.getPlannerSettings().isTypeInferenceEnabled() &&
+        FindLimit0Visitor.containsLimit0(relNode);
   }
 
   /**
