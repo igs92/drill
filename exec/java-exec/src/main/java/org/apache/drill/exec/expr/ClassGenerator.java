@@ -20,11 +20,14 @@ package org.apache.drill.exec.expr;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import com.sun.codemodel.JArray;
 import io.netty.buffer.DrillBuf;
 import org.apache.calcite.util.Pair;
 import org.apache.drill.common.exceptions.DrillRuntimeException;
@@ -280,8 +283,6 @@ public class ClassGenerator<T> {
       return innerClassGenerator.declareVectorValueSetupAndMember(batchName, fieldId);
     }
     final ValueVectorSetup setup = new ValueVectorSetup(batchName, fieldId);
-//    JVar var = this.vvDeclaration.get(setup);
-//    if(var != null) return var;
 
     Class<?> valueVectorClass = fieldId.getIntermediateClass();
     JClass vvClass = model.ref(valueVectorClass);
@@ -297,16 +298,14 @@ public class ClassGenerator<T> {
     JType objClass = model.ref(Object.class);
     JBlock b = getSetupBlock();
 
-    JVar fieldArr = b.decl(model.INT.array(), "fieldIds" + index++, JExpr.newArray(model.INT, fieldId.getFieldIds().length));
-    int[] fieldIndices = fieldId.getFieldIds();
-    for (int i = 0; i < fieldIndices.length; i++) {
-       b.assign(fieldArr.component(JExpr.lit(i)), JExpr.lit(fieldIndices[i]));
-    }
-
+    JArray fieldIdsArg = JExpr.newArray(model.INT);
+    Arrays.stream(fieldId.getFieldIds())
+        .mapToObj(JExpr::lit)
+        .forEach(fieldIdsArg::add);
     JInvocation invoke = batchName
         .invoke("getValueAccessorById")
         .arg(vvClass.dotclass())
-        .arg(fieldArr);
+        .arg(fieldIdsArg);
 
     JVar obj = b.decl(
         objClass,

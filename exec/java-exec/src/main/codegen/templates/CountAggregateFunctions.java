@@ -54,15 +54,12 @@ public class CountFunctions {
     @Override
     public void setup() {
 	    value = new BigIntHolder();
-      value.value = 0;
     }
 
     @Override
     public void add() {
       <#if inputType?starts_with("Nullable")>
-        if (in.isSet == 1) {
-          value.value++;
-        }
+        value.value += in.isSet;
       <#else>
         value.value++;
       </#if>
