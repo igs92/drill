@@ -17,26 +17,19 @@
     limitations under the License.
 
 -->
-<style>
-  .modalHeaderAlert, .closeX {
-    color:red !important;
-    text-align: center;
-    font-size: 16px;
-  }
-</style>
   <!--
     Alert Modal to use across templates.
     By default, modal is hidden and expected to be populated and activated by relevant JavaScripts
   -->
-  <div class="modal" id="errorModal" role="dialog" data-backdrop="static" data-keyboard="false" style="display: none;" aria-hidden="true">
+  <div class="modal hidden" id="errorModal" role="dialog" data-backdrop="static" data-keyboard="false" aria-hidden="true">
     <div class="modal-dialog">
       <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header modalHeaderAlert">
-          <button type="button" class="close closeX" data-dismiss="modal"><span class="glyphicon glyphicon-remove" style="color:red;font-size:125%"></span></button>
-          <h4 class="modal-title"><span class="glyphicon glyphicon-alert" style="font-size:125%">&#xe209;</span><span id="modalHeader" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;white-space:pre">~ErrorMessage~ Title</span></h4>
+          <button type="button" class="close closeX text-danger fs125" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+          <h4 class="modal-title"><span class="glyphicon glyphicon-alert fs125">&#xe209;</span><span id="modalHeader" class="modalHeaderTxt">~ErrorMessage~ Title</span></h4>
         </div>
-        <div class="modal-body" id="modalBody" style="line-height:3">
+        <div class="modal-body lh3" id="modalBody">
         ~ErrorMessage Details~
         </div>
         <div class="modal-footer">
@@ -91,15 +84,15 @@
         },
         "invalidRowCount": {
             msgHeader:"   ERROR: Invalid RowCount",
-            msgBody:"\"<span style='font-family:courier;white-space:pre'>_autoLimitValue_</span>\" is not a number. Please fill in a valid number.",
+            msgBody:"\"<span class='errMsgNum'>_autoLimitValue_</span>\" is not a number. Please fill in a valid number.",
         },
         "invalidProfileFetchSize": {
             msgHeader:"   ERROR: Invalid Fetch Size",
-            msgBody:"\"<span style='font-family:courier;white-space:pre'>_fetchSize_</span>\" is not a valid fetch size.<br>Please enter a valid number of profiles to fetch (1 to 100000)",
+            msgBody:"\"<span class='errMsgNum'>_fetchSize_</span>\" is not a valid fetch size.<br>Please enter a valid number of profiles to fetch (1 to 100000)",
         },
         "invalidOptionValue": {
             msgHeader:"   ERROR: Invalid Option Value",
-            msgBody:"\"<span style='font-family:courier;white-space:pre'>_numericOption_</span>\" is not a valid numeric value for <span style='font-family:courier;white-space:pre'>_optionName_</span><br>Please enter a valid number to update the option.",
+            msgBody:"\"<span class='errMsgNum'>_numericOption_</span>\" is not a valid numeric value for <span class='errMsgNum'>_optionName_</span><br>Please enter a valid number to update the option.",
         },
         "queryMissing": {
             msgHeader:"   ERROR: No Query to execute",

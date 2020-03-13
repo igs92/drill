@@ -27,7 +27,7 @@
   <p align="right">Auto Refresh <span class="badge badge-pill badge-info" id="refreshTimeLabel"></span>
     <button id="clippy" type="button" class="btn btn-default btn-sm" onClick="copyThreads();" title="Copy To Clipboard"> 
       <!-- Refer: https://glyphicons.bootstrapcheatsheets.com/# for correct rendering -->
-      <span class="glyphicon glyphicon-copy" style="font-size:180%">&#xe205;</span>
+      <span class="glyphicon glyphicon-copy fs180">&#xe205;</span>
     </button>
   </p>
   <div id="mainDiv" role="main">

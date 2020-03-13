@@ -35,7 +35,7 @@
     <input type="hidden" name="name" value="${model.getPlugin().getName()}" />
     <div class="form-group">
       <div id="editor" class="form-control"></div>
-      <textarea class="form-control" id="config" name="config" data-editor="json" style="display: none;" >
+      <textarea class="form-control hidden" id="config" name="config" data-editor="json">
       </textarea>
     </div>
     <a class="btn btn-default" href="/storage">Back</a>
@@ -67,7 +67,7 @@
           <h4 class="modal-title" id="exportPlugin">Plugin config</h4>
         </div>
         <div class="modal-body">
-          <div id="format" style="display: inline-block; position: relative;">
+          <div id="format" class="formatModal">
             <label for="format">Format</label>
             <div class="radio">
               <label>

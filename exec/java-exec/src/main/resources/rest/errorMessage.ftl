@@ -26,12 +26,12 @@
   </div>
 <!-- Rendering Panel -->
   <div class="panel panel-danger">
-    <div class="panel-heading" style="white-space:pre;font-size:110%;padding:0px 0px">
-      <span class="glyphicon glyphicon-alert" style="font-size:125%;">&#xe209;</span>   <strong>${model.getClass().getSimpleName()} :</strong> 	${model.getMessage()?split("\n")[0]}
+    <div class="panel-heading errPnlHdng">
+      <span class="glyphicon glyphicon-alert fs125">&#xe209;</span>   <strong>${model.getClass().getSimpleName()} :</strong> 	${model.getMessage()?split("\n")[0]}
     </div>
-    <div class="panel-body"><span style="font-family:courier,monospace;white-space:pre-wrap">${model}</span></div>
+    <div class="panel-body"><span class="errPnlBody">${model}</span></div>
   </div>
-  <a class="btn btn-default" id="backBtn" style="display:inline" onclick="window.history.back()"><span class="glyphicon glyphicon-step-backward"></span> Back</a>
+  <a class="btn btn-default dInl" id="backBtn" onclick="window.history.back()"><span class="glyphicon glyphicon-step-backward"></span> Back</a>
 </#macro>
 
 <@page_html/>

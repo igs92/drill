@@ -35,10 +35,10 @@
   <#include "*/confirmationModals.ftl">
 
   <h4 class="col-xs-6">Plugin Management</h4>
-  <table style="margin: 10px" class="table">
+  <table class="table mar10">
     <tbody>
     <tr>
-      <td style="border:none;">
+      <td class="noBorder">
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new-plugin-modal">
           Create
         </button>
@@ -50,7 +50,7 @@
     </tbody>
   </table>
 
-  <div class="page-header" style="margin: 5px;"></div>
+  <div class="page-header mar5"></div>
 
   <div class="table-responsive col-sm-12 col-md-6 col-lg-5 col-xl-5">
     <h4>Enabled Storage Plugins</h4>
@@ -59,10 +59,10 @@
         <#list model as pluginModel>
           <#if pluginModel.getPlugin()?? && pluginModel.getPlugin().enabled() == true>
             <tr>
-              <td style="border:none; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+              <td class="pluginName">
                 ${pluginModel.getPlugin().getName()}
               </td>
-              <td style="border:none;">
+              <td class="noBorder">
                 <button type="button" class="btn btn-primary" onclick="doUpdate('${pluginModel.getPlugin().getName()}')">
                   Update
                 </button>

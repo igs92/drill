@@ -33,7 +33,7 @@
         <a href = "/spnegoLogin" class="btn btn-primary"> Login using SPNEGO </a>
       </#if>
       <#if model?? && model.getError()??>
-        <p style="color:red">${model.getError()}</p></br>
+        <p class="text-danger">${model.getError()}</p></br>
       </#if>
     </div>
   </div>

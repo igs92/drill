@@ -37,22 +37,22 @@
       <br>
       Heap
       <div class="progress">
-        <div id="heapUsage" class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">
+        <div id="heapUsage" class="progress-bar metricsUsage" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" >
         </div>
       </div>
       Non heap
       <div class="progress">
-        <div id="non-heapUsage" class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">
+        <div id="non-heapUsage" class="progress-bar metricsUsage" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" >
         </div>
       </div>
       Total
       <div class="progress">
-        <div id="totalUsage" class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">
+        <div id="totalUsage" class="progress-bar metricsUsage" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" >
         </div>
       </div>
       Actively Used Direct (Estimate)
       <div class="progress">
-        <div id="estDirectUsage" class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">
+        <div id="estDirectUsage" class="progress-bar metricsUsage" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" >
         </div>
       </div>
     </div>

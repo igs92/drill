@@ -49,7 +49,7 @@
      </td>
      <td align="right" width="100%">
        <div class="input-group">
-         <span class="input-group-addon" style="font-size:95%">Delimiter </span>
+         <span class="input-group-addon fs95">Delimiter </span>
          <input id="delimitBy" type="text" class="form-control input-sm" name="delimitBy" title="Specify delimiter" placeholder="Required" maxlength="2" size="2" value=",">
        </div></td><td>
        <button type="button"  title="Export visible table as CSV. Show ALL rows to export entire resultSet" onclick="exportTableAsCsv('${model.getQueryId()}');" class="btn btn-default btn-sm">
@@ -63,7 +63,7 @@
       <p class="lead">No result found.</p>
     </div>
   <#else>
-    <table id="result" class="table table-striped table-bordered table-condensed" style="table-layout: auto; width=100%; white-space: pre;">
+    <table id="result" class="table table-striped table-bordered table-condensed resultTable">
       <thead>
         <tr>
           <#list model.getColumns() as value>

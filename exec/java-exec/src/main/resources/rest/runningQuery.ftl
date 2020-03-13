@@ -25,9 +25,9 @@
         <div class="modal-header">
           <h4 class="modal-title" id="cancelTitle">Query Submitted</h4>
         </div>
-        <div class="modal-body" style="line-height:3">
+        <div class="modal-body lh3">
             <table border="0px" width="100%"><tr>
-                <td align="center" style="font-size:125%">Waiting for results... (This may take some time) <br>Please don't close this window</td>
+                <td align="center" class="fs125">Waiting for results... (This may take some time) <br>Please don't close this window</td>
                 <td align="right"><img src="/static/img/loader.gif"></td>
             </tr></table>
         </div>

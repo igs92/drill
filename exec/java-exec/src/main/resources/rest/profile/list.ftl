@@ -125,7 +125,7 @@
   </#if>
   <#if (model.getRunningQueries()?size > 0) >
     <h3>Running Queries 
-    <div  style="display: inline-block; line-height:2" >
+    <div class="lh2 dInlBlk">
       <button type="button" class="btn btn-warning btn-sm" onClick="cancelSelection()">
       Cancel Selected</button>
     </div></h3>
@@ -137,7 +137,7 @@
             <button type="button" class="close" onclick="refreshStatus()">&times;</button>
             <h4 class="modal-title" id="cancelTitle"></h4>
           </div>
-          <div class="modal-body" style="line-height:2" ><h3 id="cancelText">Cancellation Status</h3></div>
+          <div class="modal-body lh3"><h3 id="cancelText">Cancellation Status</h3></div>
           <div class="modal-footer"><button type="button" class="btn btn-default" onclick="refreshStatus()">Close</button></div>
         </div>
       </div>
@@ -173,7 +173,7 @@
       <td><h3>Completed Queries</h3></td>
       <td align="right">
         <form name="profileFetch" action="/profiles" onsubmit="return checkMaxFetch();" method="get"><span title="Max number of profiles to load">Loaded <b>${model.getFinishedQueries()?size}</b> profiles </span>
-        <input id="fetchMax" type="text" size="5" name="max" value="" style="text-align: right" />
+        <input id="fetchMax" type="text" size="5" name="max" value="" class="text-right" />
         <input type="submit" value="Reload"/>
       </form></td>
     </tr></table>
@@ -220,7 +220,7 @@
                 <td>${query.getUser()}</td>
                 <td>
                     <a href="/profiles/${query.getQueryId()}">
-                        <div style="height:100%;width:100%;white-space:pre-line">${query.getQuery()}</div>
+                        <div class="logItem">${query.getQuery()}</div>
                     </a>
                 </td>
                 <td>${query.getState()}</td>
@@ -231,7 +231,7 @@
             </tbody>
         </table>
     </div>
-    <div style="padding-bottom: 2em;"/>
+    <div class="pb2"/>
 </#macro>
 
 <@page_html/>

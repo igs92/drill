@@ -139,13 +139,13 @@
     </#if>
   </ul>
   <div id="query-content" class="tab-content">
-    <div id="query-query" class="tab-pane" style="background-color: #ffffff">
-      <p><pre id="query-text" name="query-text"  style="background-color: #f5f5f5; font-family:courier,monospace">${model.getProfile().query}</pre></p>
+    <div id="query-query" class="tab-pane bgWhite">
+      <p><pre id="query-text" name="query-text" class="queryTxt">${model.getProfile().query}</pre></p>
       <#if model.hasAutoLimit()>
-          <div name="autoLimitWarning" style="cursor:help" class="panel panel-warning" title="WebUI Queries allow restricting the number of rows returned to avoid the server to hold excessive number of results rows in memory.&#10;This helps maintain server stability with faster response if the entire resultset will not be visualized in the browser">
+          <div name="autoLimitWarning" class="panel panel-warning helpCursor" title="WebUI Queries allow restricting the number of rows returned to avoid the server to hold excessive number of results rows in memory.&#10;This helps maintain server stability with faster response if the entire resultset will not be visualized in the browser">
             <div class="panel-heading">
-            <span class="glyphicon glyphicon-pushpin" style="font-size:125%"></span>
-            <b>WARNING:</b> Query result was <b>automatically</b> limited to <span style="font-style:italic;font-weight:bold">${model.getAutoLimit()} rows</span>
+            <span class="glyphicon glyphicon-pushpin fs125"></span>
+            <b>WARNING:</b> Query result was <b>automatically</b> limited to <span class="fItalicBold">${model.getAutoLimit()} rows</span>
             </div>
           </div>
       </#if>
@@ -154,7 +154,7 @@
       <p><pre>${model.profile.plan}</pre></p>
     </div>
     <div id="query-visual" class="tab-pane">
-      <div style='padding: 15px 15px;'>
+      <div class="pad15">
         <button type='button' class='btn btn-default' onclick='popUpAndPrintPlan();'><span class="glyphicon glyphicon-print"></span> Print Plan</button>
       </div>
       <div>
@@ -174,7 +174,7 @@
         <form role="form" id="queryForm" action="/query" method="POST">
           <div id="query-editor" class="form-group">${model.getProfile().query}</div>
           <input class="form-control" id="query" name="query" type="hidden" value="${model.getProfile().query}"/>
-          <div style="padding:5px"><b>Hint: </b>Use <div id="keyboardHint" style="display:inline-block; font-style:italic"></div> to submit</div>
+          <div class="pad5"><b>Hint: </b>Use <div id="keyboardHint" class="dInlBlk fItalic"></div> to submit</div>
           <div class="form-group">
             <div class="radio-inline">
               <label>
@@ -199,7 +199,7 @@
               <button class="btn btn-default" type="button" id="rerunButton" onclick="<#if model.isOnlyImpersonationEnabled()>doSubmitQueryWithUserName()<#else>doSubmitQueryWithAutoLimit()</#if>">
             Re-run query
               </button>
-              <input type="checkbox" name="forceLimit" value="limit" <#if model.hasAutoLimit()>checked</#if>> Limit results to <input type="text" id="autoLimit" name="autoLimit" min="0" value="<#if model.hasAutoLimit()>${model.getAutoLimit()?c}<#else>${model.getDefaultAutoLimit()?c}</#if>" size="6" pattern="[0-9]*"> rows <span class="glyphicon glyphicon-info-sign" title="Limits the number of records retrieved in the query. Ignored if query has a limit already" style="cursor:pointer"></span>
+              <input type="checkbox" name="forceLimit" value="limit" <#if model.hasAutoLimit()>checked</#if>> Limit results to <input type="text" id="autoLimit" name="autoLimit" min="0" value="<#if model.hasAutoLimit()>${model.getAutoLimit()?c}<#else>${model.getDefaultAutoLimit()?c}</#if>" size="6" pattern="[0-9]*"> rows <span class="glyphicon glyphicon-info-sign cursorPointer" title="Limits the number of records retrieved in the query. Ignored if query has a limit already"></span>
             </div>
             <input type="hidden" name="csrfToken" value="${model.getCsrfToken()}">
           </form>
@@ -248,9 +248,9 @@
   <#assign queued = queueName != "" && queueName != "-" />
 
   <div class="page-header"></div>
-  <h3>Query Profile: <span style='font-size:85%'>${model.getQueryId()}</span>
+  <h3>Query Profile: <span class="fs85">${model.getQueryId()}</span>
   <#if model.getQueryStateDisplayName() == "Prepared" || model.getQueryStateDisplayName() == "Planning" || model.getQueryStateDisplayName() == "Enqueued" || model.getQueryStateDisplayName() == "Starting" || model.getQueryStateDisplayName() == "Running">
-    <div  style="display: inline-block;">
+    <div class="dInlBlk">
       <button type="button" id="cancelBtn" class="btn btn-warning btn-sm" onclick="cancelQuery()" > Cancel </button>
     </div>
 
@@ -262,7 +262,7 @@
           <button type="button" class="close" data-dismiss="modal" onclick="refreshStatus()">&times;</button>
           <h4 class="modal-title" id="cancelTitle"></h4>
         </div>
-        <div class="modal-body" style="line-height:2">
+        <div class="modal-body lh2">
           Cancellation issued for Query ID:<br>${model.getQueryId()}
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-default" onclick="refreshStatus()">Close</button></div>
@@ -385,9 +385,9 @@
       <div id="fragment-overview" class="panel-collapse collapse">
         <div class="panel-body">
           <svg id="fragment-overview-canvas" class="center-block"></svg>
-          <div id="noProgressWarning" style="display:none;cursor:help" class="panel panel-warning">
-            <div class="panel-heading" title="Check if any of the Drillbits are waiting for data from a SCAN operator, or might actually be hung with its VM thread being busy." style="cursor:pointer">
-            <span class="glyphicon glyphicon-alert" style="font-size:125%">&#xe209;</span> <b>WARNING:</b> No fragments have made any progress in the last <b>${model.getNoProgressWarningThreshold()}</b> seconds. (See <span style="font-style:italic;font-weight:bold">Last Progress</span> below)
+          <div id="noProgressWarning" class="panel panel-warning helpCursor hidden">
+            <div class="panel-heading pointerCursor" title="Check if any of the Drillbits are waiting for data from a SCAN operator, or might actually be hung with its VM thread being busy.">
+            <span class="glyphicon glyphicon-alert fs125">&#xe209;</span> <b>WARNING:</b> No fragments have made any progress in the last <b>${model.getNoProgressWarningThreshold()}</b> seconds. (See <span class="fItalicBold">Last Progress</span> below)
             </div>
           </div>
           ${model.getFragmentsOverview()?no_esc}
@@ -414,16 +414,8 @@
 
   <div class="page-header"></div>
   <h3>Operator Profiles
- <button onclick="toggleEstimates('Rows')" class="btn" style="font-size:60%; float:right">Show/Hide Estimated Rows</button></h3>
+ <button onclick="toggleEstimates('Rows')" class="btn pull-right fs60">Show/Hide Estimated Rows</button></h3>
 
- <style>
-  .estRows {
-    color:navy;
-    font-style:italic;
-    font-size: 80%;
-    display:<#if model.showEstimatedRows()>block<#else>none</#if>;
-  }
-</style>
   <div class="panel-group" id="operator-accordion">
     <div class="panel panel-default">
       <div class="panel-heading">
@@ -436,22 +428,22 @@
       <div id="operator-overview" class="panel-collapse collapse">
         <div class="panel-body">
       <#if model.hasAutoLimit()>
-          <div name="autoLimitWarning" style="cursor:help" class="panel panel-warning" title="WebUI Queries allow restricting the number of rows returned to avoid the server to hold excessive number of results rows in memory.&#10;This helps maintain server stability with faster response if the entire resultset will not be visualized in the browser">
+          <div name="autoLimitWarning" class="panel panel-warning helpCursor" title="WebUI Queries allow restricting the number of rows returned to avoid the server to hold excessive number of results rows in memory.&#10;This helps maintain server stability with faster response if the entire resultset will not be visualized in the browser">
             <div class="panel-heading">
-            <span class="glyphicon glyphicon-pushpin" style="font-size:125%"></span>
-            <b>WARNING:</b> Query result was <b>automatically</b> limited to <span style="font-style:italic;font-weight:bold">${model.getAutoLimit()} rows</span>
+            <span class="glyphicon glyphicon-pushpin fs125"></span>
+            <b>WARNING:</b> Query result was <b>automatically</b> limited to <span class="fItalicBold">${model.getAutoLimit()} rows</span>
             </div>
           </div>
       </#if>
-          <div id="spillToDiskWarning" style="display:none;cursor:help" class="panel panel-warning" title="Spills occur because a buffered operator didn't get enough memory to hold data in memory. Increase the memory or ensure that number of spills &lt; 2">
-            <div class="panel-heading"><span class="glyphicon glyphicon-alert" style="font-size:125%">&#xe209;</span> <b>WARNING:</b> Some operators have data spilled to disk. This will result in performance loss. (See <span style="font-style:italic;font-weight:bold">Avg Peak Memory</span> and <span style="font-style:italic;font-weight:bold">Max Peak Memory</span> below)
-            <button type="button" class="close" onclick="closeWarning('spillToDiskWarning')" style="font-size:180%">&times;</button>
+          <div id="spillToDiskWarning" class="panel panel-warning hidden helpCursor" title="Spills occur because a buffered operator didn't get enough memory to hold data in memory. Increase the memory or ensure that number of spills &lt; 2">
+            <div class="panel-heading"><span class="glyphicon glyphicon-alert fs125">&#xe209;</span> <b>WARNING:</b> Some operators have data spilled to disk. This will result in performance loss. (See <span class="fItalicBold">Avg Peak Memory</span> and <span class="fItalicBold">Max Peak Memory</span> below)
+            <button type="button" class="close fs180" onclick="closeWarning('spillToDiskWarning')">&times;</button>
             </div>
           </div>
-          <div id="longScanWaitWarning" style="display:none;cursor:help" class="panel panel-warning">
-            <div class="panel-heading" title="Check if any of the Drillbits are waiting for data from a SCAN operator, or might actually be hung with its VM thread being busy." style="cursor:pointer">
-            <span class="glyphicon glyphicon-alert" style="font-size:125%">&#xe209;</span> <b>WARNING:</b> Some of the SCAN operators spent more time waiting for the data than processing it. (See <span style="font-style:italic;font-weight:bold">Avg Wait Time</span> as compared to <span style="font-style:italic;font-weight:bold">Average Process Time</span> for the <b>SCAN</b> operators below)
-            <button type="button" class="close" onclick="closeWarning('longScanWaitWarning')" style="font-size:180%">&times;</button>
+          <div id="longScanWaitWarning" class="panel panel-warning helpCursor hidden">
+            <div class="panel-heading pointerCursor" title="Check if any of the Drillbits are waiting for data from a SCAN operator, or might actually be hung with its VM thread being busy.">
+            <span class="glyphicon glyphicon-alert fs125">&#xe209;</span> <b>WARNING:</b> Some of the SCAN operators spent more time waiting for the data than processing it. (See <span class="fItalicBold">Avg Wait Time</span> as compared to <span class="fItalicBold">Average Process Time</span> for the <b>SCAN</b> operators below)
+            <button type="button" class="close fs180" onclick="closeWarning('longScanWaitWarning')">&times;</button>
             </div>
           </div>
           ${model.getOperatorsOverview()?no_esc}
@@ -481,7 +473,7 @@
             </h4>
           </div>
           <div id="${op.getId()}-metrics" class="panel-collapse collapse">
-            <div class="panel-body" style="display:block;overflow-x:auto">
+            <div class="panel-body dBlk xAutoOverflow">
               ${op.getMetricsTable()?no_esc}
             </div>
           </div>
@@ -512,6 +504,7 @@
       //Building RowCount
       buildRowCountMap();
       injectEstimatedRows();
+      <#if model.showEstimatedRows()==false>$(".estRows").addClass('hidden')</#if>
     });
 
     //Inject Glyphicon by Class tag

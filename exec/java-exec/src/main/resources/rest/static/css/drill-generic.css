@@ -1,0 +1,225 @@
+.logItem {
+  height: 100%;
+  width: 100%;
+  white-space: pre-line;
+}
+
+.metricsUsage {
+  width: 50%;
+}
+
+.lh2 {
+  line-height: 2;
+}
+
+.lh3 {
+  line-height: 3;
+}
+
+.dBlk {
+  display: block;
+}
+
+.dInlBlk {
+  display: inline-block;
+}
+
+.dInl {
+  display: inline;
+}
+
+.dCell {
+  display: table-cell;
+}
+
+.pb2 {
+  padding-bottom: 2em;
+}
+
+.bgWhite {
+  background-color: #ffffff;
+}
+
+.queryTxt {
+  background-color: #f5f5f5;
+  font-family: courier, monospace;
+}
+
+.helpCursor {
+  cursor: help;
+}
+
+.pointerCursor {
+  cursor: pointer;
+}
+
+.fs50 {
+  font-size: 50%;
+}
+
+.fs60 {
+  font-size: 60%;
+}
+
+.fs85 {
+  font-size: 85%;
+}
+
+.fs95 {
+  font-size: 95%;
+}
+
+.fs100 {
+  font-size: 100%;
+}
+
+.fs125 {
+  font-size: 125%;
+}
+
+.fs180 {
+  font-size: 180%;
+}
+
+.pad15 {
+  padding: 15px 15px;
+}
+
+.pad5 {
+  padding: 5px;
+}
+
+.padTop05 {
+  padding-top: 0.5%;
+}
+
+.fItalic {
+  font-style: italic
+}
+
+.fItalicBold {
+  font-style: italic;
+  font-weight: bold;
+}
+
+.estRows {
+  color: navy;
+  font-style: italic;
+  font-size: 80%;
+}
+
+.xAutoOverflow {
+  overflow-x: auto;
+}
+
+.ffMono {
+  font-family: courier, monospace;
+}
+
+.submitHint {
+  float: right;
+  padding-right: 5%;
+}
+
+.resultTable {
+  table-layout: auto;
+  width: 100%;
+  white-space: pre;
+}
+
+.mar10 {
+  margin: 10px;
+}
+
+.mar5 {
+  margin: 5px;
+}
+
+.noBorder {
+  border: none;
+}
+
+.pluginName {
+  border: none;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.formatModal {
+  display: inline-block;
+  position: relative;
+}
+
+.modalHeaderAlert, .closeX {
+  color: red !important;
+  text-align: center;
+  font-size: 16px;
+}
+
+.modalHeaderTxt {
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  white-space: pre;
+}
+
+.errMsgNum {
+  font-family: courier;
+  white-space: pre;
+}
+
+.wid20 {
+  width: 20%;
+}
+
+.wid25 {
+  width: 25%;
+}
+
+.wid30 {
+  width: 30%;
+}
+
+.wid45 {
+  width: 45%;
+}
+
+.widAuto {
+  width: auto;
+}
+
+.errPnlHdng {
+  white-space: pre;
+  font-size: 110%;
+  padding: 0px 0px;
+}
+
+.errPnlBody {
+  font-family: courier, monospace;
+  white-space: pre-wrap;
+}
+
+.shutdownHidden {
+  opacity: 0.5;
+  cursor: not-allowed;
+  display: none;
+}
+
+.shutdownShown {
+  opacity: 0.5;
+  cursor: not-allowed;
+  display: inline;
+}
+
+.fwBold {
+  font-weight: bold;
+}
+
+.optionsTblLayout {
+  table-layout: auto;
+  width: 100%;
+}
+
+.optionNameTxt {
+  font-family: Courier New;
+  vertical-align: middle;
+}

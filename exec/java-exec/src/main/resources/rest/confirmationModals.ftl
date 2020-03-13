@@ -28,14 +28,14 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close closeX" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
-        <h3 class="modal-title" id="confirmation" style="color:orange" align="center"><span class="glyphicon glyphicon-alert">&#xe209;</span><span id="modalHeader" style="font-family:Helvetica Neue,Helvetica,Arial,sans-serif;white-space:pre">  Warning</span></h3>
+        <h3 class="modal-title text-warning" id="confirmation" align="center"><span class="glyphicon glyphicon-alert">&#xe209;</span><span id="modalHeader" class="modalHeaderTxt">  Warning</span></h3>
       </div>
-      <div class="modal-body" id="modalBody" style="font-size:125%">
+      <div class="modal-body f125" id="modalBody">
       ~ConfirmationMessage~
       </div>
       <div class="modal-footer">
-        <button id="confirmationOk" type="button" class="btn btn-success" data-dismiss="modal" style="width:20%">Confirm</button>
-        <button id="confirmationCancel" type="button" class="btn btn-primary" data-dismiss="modal" style="width:20%">Cancel</button>
+        <button id="confirmationOk" type="button" class="btn btn-success wid20" data-dismiss="modal">Confirm</button>
+        <button id="confirmationCancel" type="button" class="btn btn-primary wid20" data-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>

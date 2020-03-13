@@ -34,6 +34,7 @@
       <link rel="shortcut icon" href="/static/img/drill.ico">
 
       <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+      <link href="/static/css/drill-generic.css" rel="stylesheet">
 
       <script type="text/javascript" language="javascript" src="/static/js/jquery-3.2.1.min.js"></script>
       <script src="/static/js/bootstrap.min.js"></script>

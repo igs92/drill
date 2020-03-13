@@ -82,29 +82,29 @@
     <div class="input-group input-sm" >
       <input id="searchBox" name="searchBox" class="form-control" type="text" value="" placeholder="Search options...">
         <div class="input-group-btn">
-          <button class="btn btn-default" type="button" onclick="$('#searchBox').val('').focus();" title="Clear search" style="font-weight:bold">&times;</button>
+          <button class="btn btn-default fwBold" type="button" onclick="$('#searchBox').val('').focus();" title="Clear search">&times;</button>
         </div> 
     </div>
   </div>
-  <div class="btn-group btn-group-sm" style="padding-top:0.5%;">
-  <button type="button" class="btn" style="cursor:default;font-weight:bold;" > Quick Filters </button>
+  <div class="btn-group btn-group-sm padTop05">
+  <button type="button" class="btn fwBold"> Quick Filters </button>
   <#list model.getFilters() as filter>
   <button type="button" class="btn btn-info" onclick="inject(this.innerHTML);">${filter}</button>
   </#list>
   </div>
   <#include "*/alertModals.ftl">
   <div class="table-responsive">
-    <table id='optionsTbl' class="table table-striped table-condensed display sortable" style="table-layout: auto; width=100%;">
+    <table id='optionsTbl' class="table table-striped table-condensed display sortable optionsTblLayout">
       <thead>
         <tr>
-          <th style="width:30%">OPTION</th>
-          <th style="width:25%">VALUE</th>
-          <th style="width:45%">DESCRIPTION</th>
+          <th class="wid30">OPTION</th>
+          <th class="wid25">VALUE</th>
+          <th class="wid45">DESCRIPTION</th>
         </tr>
       </thead>
       <tbody><#assign i = 1><#list model.getOptions() as option>
           <tr id="row-${i}">
-            <td style="font-family:Courier New; vertical-align:middle" id='optionName'>${option.getName()}</td>
+            <td id='optionName' class="optionNameTxt">${option.getName()}</td>
             <td>
               <form class="form-inline" role="form" id="${option.getName()}">
                 <div class="form-group">
@@ -121,7 +121,8 @@
                   </#if>
                     <div class="input-group-btn">
                       <button class="btn btn-default" type="button" onclick="alterSysOptionUsingId('${option.getName()}')">Update</button>
-                      <button class="btn btn-default" type="button" onclick="alterSysOption('${option.getName()}','${option.getDefaultValue()}', '${option.getKind()}')" <#if option.getDefaultValue() == option.getValueAsString()>disabled="true" style="pointer-events:none" <#else>
+                      <button class="btn btn-default" type="button" onclick="alterSysOption('${option.getName()}','${option.getDefaultValue()}', '${option.getKind()}')" 
+                      <#if option.getDefaultValue() == option.getValueAsString()>disabled="true"<#else>
                       title="Reset to ${option.getDefaultValue()}"</#if>>Default</button>
                     </div>
                   </div>

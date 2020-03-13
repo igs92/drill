@@ -38,14 +38,14 @@
             <tr>
                 <td>
                     <a href="/log/${log.getName()}/content">
-                        <div style="height:100%;width:100%;white-space:pre-line">${log.getName()}</div>
+                        <div class="logItem">${log.getName()}</div>
                     </a>
                 </td>
                 <td>
-                    <div style="height:100%;width:100%;white-space:pre-line">${log.getSize()}</div>
+                    <div class="logItem">${log.getSize()}</div>
                 </td>
                 <td>
-                    <div style="height:100%;width:100%;white-space:pre-line">${log.getLastModified()}</div>
+                    <div class="logItem">${log.getLastModified()}</div>
                 </td>
             </tr>
             </#list>

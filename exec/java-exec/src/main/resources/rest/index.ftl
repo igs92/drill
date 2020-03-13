@@ -56,25 +56,25 @@
   <div class="row">
     <div class="col-md-12">
       <h3><span id="sizeLabel">Drillbits <span class="label label-primary" id="size">${model.getDrillbits()?size}</span>
-          <button type="button" class="btn btn-warning" id='reloadBtn' style="display:none;font-size:50%" title='New Drillbits detected! Click to Refresh' onclick='location.reload();'>
+          <button type="button" class="btn btn-warning hidden fs50" id='reloadBtn' title='New Drillbits detected! Click to Refresh' onclick='location.reload();'>
           <span class="glyphicon glyphicon-refresh"></span></button></h3>
       <div class="table-responsive">
         <table class="table table-hover" id="bitTable">
           <thead>
             <tr>
               <th>#</th>
-              <th title="Drillbits in Cluster" style="cursor: help;">Address <span class="glyphicon glyphicon-info-sign" style="font-size:100%"/></th>
-              <th title="Heap Memory in use (as percent of Total Heap)" style="cursor: help;">Heap Memory Usage <span class="glyphicon glyphicon-info-sign" style="font-size:100%"/></th>
-              <th title="Estimated Direct Memory ACTIVELY in use (as percent of Peak Usage)" style="cursor: help;">Direct Memory Usage <span class="glyphicon glyphicon-info-sign" style="font-size:100%"/></th>
-              <th title="Current CPU usage by Drill" style="cursor: help;">CPU Usage<span class="glyphicon glyphicon-info-sign" style="font-size:100%"/></th>
-              <th title="Average load on the system in the last 1 minute" style="cursor: help;">Avg Sys Load <span class="glyphicon glyphicon-info-sign" style="font-size:100%"/></th>
+              <th title="Drillbits in Cluster" class="helpCursor">Address <span class="glyphicon glyphicon-info-sign fs100"/></th>
+              <th title="Heap Memory in use (as percent of Total Heap)" class="helpCursor">Heap Memory Usage <span class="glyphicon glyphicon-info-sign fs100"/></th>
+              <th title="Estimated Direct Memory ACTIVELY in use (as percent of Peak Usage)" class="helpCursor">Direct Memory Usage <span class="glyphicon glyphicon-info-sign fs100"/></th>
+              <th title="Current CPU usage by Drill" class="helpCursor">CPU Usage<span class="glyphicon glyphicon-info-sign fs100"/></th>
+              <th title="Average load on the system in the last 1 minute" class="helpCursor">Avg Sys Load <span class="glyphicon glyphicon-info-sign fs100"/></th>
               <th>User Port</th>
               <th>Control Port</th>
               <th>Data Port</th>
               <th>Version</th>
               <th>Status</th>
               <th>Uptime</th>
-              <th style="display:${(model.isAuthEnabled() && !model.shouldShowAdminInfo())?then("none","table-cell")}">Shutdown</th>
+              <th class="${(model.isAuthEnabled() && !model.shouldShowAdminInfo())?then("hidden","dCell")}">Shutdown</th>
             </tr>
           </thead>
           <tbody>
@@ -85,10 +85,10 @@
                 <td id="address" >${drillbit.getAddress()}<#if drillbit.isCurrent()>
                     <span class="label label-info" id="current">Current</span>
                     <#else>
-                    <a onclick="popOutRemoteDbitUI('${drillbit.getAddress()}','${drillbit.getHttpPort()}');" style="cursor:pointer;color:blue" title="Open in new window"><span class="glyphicon glyphicon-new-window"/></a>
+                    <a onclick="popOutRemoteDbitUI('${drillbit.getAddress()}','${drillbit.getHttpPort()}');" class="pointerCursor text-primary" title="Open in new window"><span class="glyphicon glyphicon-new-window"/></a>
                   </#if>
                 </td>
-                <td id="httpPort" style="display:none">${drillbit.getHttpPort()}</td>
+                <td id="httpPort" class="hidden">${drillbit.getHttpPort()}</td>
                 <td class="heap">Not Available</td>
                 <td class="direct">Not Available</td>
                 <td class="bitload"><span class="label label-info" id="NA">Not Available</span></td>
@@ -106,9 +106,9 @@
                 <td class="uptime" >Not Available</td>
                 <td>
                 <#if (model.isAuthEnabled() && !model.shouldShowAdminInfo())>
-                      <button class='shutdownCtrl' type="button" id="shutdown" disabled="true" style="opacity:0.5;cursor:not-allowed;display:none" onClick="" comment="Placeholder. Hidden by default">
+                      <button class='shutdownCtrl shutdownHidden' type="button" id="shutdown" disabled="true" onClick="" comment="Placeholder. Hidden by default">
                 <#else>
-                      <button class='shutdownCtrl' type="button" id="shutdown" disabled="true" style="opacity:0.5;cursor:not-allowed;display:inline" onClick="shutdown($(this));" title="Not available for remote Drillbits">
+                      <button class='shutdownCtrl shutdownShown' type="button" id="shutdown" disabled="true" onClick="shutdown($(this));" title="Not available for remote Drillbits">
                 </#if>
                       <span class="glyphicon glyphicon-off"></span></button>
                 </td>
@@ -126,7 +126,7 @@
       <div class="col-md-12">
         <h3>Encryption</h3>
         <div class="table-responsive">
-          <table class="table table-hover" style="width: auto;">
+          <table class="table table-hover widAuto">
             <tbody>
                 <tr>
                   <td>Client to Bit Encryption</td>
@@ -151,7 +151,7 @@
             <div class="col-md-12">
               <h3>User Info </h3>
               <div class="table-responsive">
-                <table class="table table-hover" style="width: auto;">
+                <table class="table table-hover widAuto">
                   <tbody>
                       <tr>
                         <td>Admin Users</td>
@@ -180,7 +180,7 @@
       <div class="col-md-12">
         <h3>Query Throttling</h3>
         <div class="table-responsive">
-          <table class="table table-hover" style="width: auto;">
+          <table class="table table-hover widAuto">
             <tbody>
                <tr>
                   <td>Queue Status</td>
@@ -378,7 +378,7 @@
                .append("<tr id='row-" + bitId + "' class='newbit' title='Recommend page refresh for more info'>"
                  + "<td>"+bitId+"</td>"
                  + "<td id='address' name='"+newBitElemId+"'>"+displayNodeName+" <span class='label label-primary' id='size' >new</span></td>"
-                 + "<td id='httpPort' style='display:none'>"+newBitHttpPort+"</td>"
+                 + "<td id='httpPort' class='hidden'>"+newBitHttpPort+"</td>"
                  + "<td class='heap'>"+nAText+"</td>"
                  + "<td class='direct'>"+nAText+"</td>"
                  + "<td class='bitload'>"+nAText+"</td>"
@@ -390,7 +390,7 @@
                  + "<td id='status'>"+bitState+"</td>"
                  + "<td class='uptime'>"+nAText+"</td>"
                  + "<td>"
-                   + "<button type='button' id='shutdown' onclick='shutdown($(this));' disabled='true' style='opacity:0.5;cursor:not-allowed;${(model.isAuthEnabled() && !model.shouldShowAdminInfo())?then('display:none','')}'>"
+                   + "<button type='button' id='shutdown' onclick='shutdown($(this));' disabled='true' class='${(model.isAuthEnabled() && !model.shouldShowAdminInfo())?then('shutdownHidden','shutdownShown')}'>"
                    + "<span class='glyphicon glyphicon-off'></span></button></td>"
                  + "<td uiElem='queriesCount' />"
                  + "</tr>"
