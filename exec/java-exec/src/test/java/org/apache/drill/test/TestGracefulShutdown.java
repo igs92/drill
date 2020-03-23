@@ -21,6 +21,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.drill.categories.SlowTest;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
 import org.apache.drill.exec.server.Drillbit;
 import org.apache.drill.exec.server.rest.WebServer;
@@ -92,7 +93,7 @@ public class TestGracefulShutdown extends ClusterTest {
     try (ClusterFixture cluster = builder.build()) {
 
       Drillbit drillbit = cluster.drillbit("db2");
-      int zkRefresh = drillbit.getContext().getConfig().getInt(ExecConstants.ZK_REFRESH);
+      int zkRefresh = ExecOpt.ZK_REFRESH.intFrom(drillbit.getContext().getConfig());
       DrillbitEndpoint drillbitEndpoint = drillbit.getRegistrationHandle().getEndPoint();
       cluster.closeDrillbit("db2");
 
@@ -129,7 +130,7 @@ public class TestGracefulShutdown extends ClusterTest {
          ClientFixture client = cluster.clientFixture()) {
       Drillbit drillbit = cluster.drillbit("db1");
       int port = drillbit.getWebServerPort();
-      int zkRefresh = drillbit.getContext().getConfig().getInt(ExecConstants.ZK_REFRESH);
+      int zkRefresh = ExecOpt.ZK_REFRESH.intFrom(drillbit.getContext().getConfig());
       listener = client.queryBuilder().sql(sql).futureSummary();
       URL url = new URL("http://localhost:" + port + "/gracefulShutdown");
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -164,7 +165,7 @@ public class TestGracefulShutdown extends ClusterTest {
          final ClientFixture client = cluster.clientFixture()) {
       Drillbit drillbit = cluster.drillbit("db1");
       int port = drillbit.getWebServerPort();
-      int zkRefresh = drillbit.getContext().getConfig().getInt(ExecConstants.ZK_REFRESH);
+      int zkRefresh = ExecOpt.ZK_REFRESH.intFrom(drillbit.getContext().getConfig());
       listener = client.queryBuilder().sql(sql).futureSummary();
       while (!listener.isDone()) {
         Thread.sleep(100L);
@@ -188,8 +189,8 @@ public class TestGracefulShutdown extends ClusterTest {
     ClusterFixtureBuilder fixtureBuilder = ClusterFixture.builder(dirTestWatcher)
         .withLocalZk()
         .configProperty(ExecConstants.ALLOW_LOOPBACK_ADDRESS_BINDING, true)
-        .configProperty(ExecConstants.INITIAL_USER_PORT, QueryTestUtil.getFreePortNumber(31170, 300))
-        .configProperty(ExecConstants.INITIAL_BIT_PORT, QueryTestUtil.getFreePortNumber(31180, 300));
+        .configProperty(ExecOpt.USER_PORT.key, QueryTestUtil.getFreePortNumber(31170, 300))
+        .configProperty(ExecOpt.BIT_PORT.key, QueryTestUtil.getFreePortNumber(31180, 300));
 
     try (ClusterFixture fixture = fixtureBuilder.build();
          Drillbit drillbitWithSamePort = new Drillbit(fixture.config(),
@@ -215,8 +216,8 @@ public class TestGracefulShutdown extends ClusterTest {
     File originalDrillbitTempDir;
     ClusterFixtureBuilder fixtureBuilder = ClusterFixture.builder(dirTestWatcher).withLocalZk()
         .configProperty(ExecConstants.ALLOW_LOOPBACK_ADDRESS_BINDING, true)
-        .configProperty(ExecConstants.INITIAL_USER_PORT, QueryTestUtil.getFreePortNumber(31170, 300))
-        .configProperty(ExecConstants.INITIAL_BIT_PORT, QueryTestUtil.getFreePortNumber(31180, 300));
+        .configProperty(ExecOpt.USER_PORT.key, QueryTestUtil.getFreePortNumber(31170, 300))
+        .configProperty(ExecOpt.BIT_PORT.key, QueryTestUtil.getFreePortNumber(31180, 300));
 
     try (ClusterFixture fixture = fixtureBuilder.build();
          Drillbit twinDrillbitOnSamePort = new Drillbit(fixture.config(),

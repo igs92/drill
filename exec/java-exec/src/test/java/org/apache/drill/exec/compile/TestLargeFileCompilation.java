@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.drill.categories.SlowTest;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.planner.physical.PlannerSettings;
 import org.apache.drill.test.ClusterFixture;
 import org.apache.drill.test.ClusterFixtureBuilder;
@@ -165,7 +166,7 @@ public class TestLargeFileCompilation extends ClusterTest {
   @BeforeClass
   public static void setUp() throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher)
-        .configProperty(ExecConstants.USER_RPC_TIMEOUT, 5_000);
+        .configProperty(ExecOpt.USER_TIMEOUT.key, 5_000);
     startCluster(builder);
   }
 
@@ -251,7 +252,7 @@ public class TestLargeFileCompilation extends ClusterTest {
   public void testHashJoin() throws Exception {
     String tableName = "wide_table_hash_join";
     try {
-      client.alterSession(ExecConstants.HASHJOIN_FALLBACK_ENABLED_KEY, true);
+      client.alterSession(ExecOpt.HASH_JOIN_FALLBACK_ENABLED.key, true);
       client.alterSession(PlannerSettings.MERGEJOIN.getOptionName(), false);
       client.alterSession(PlannerSettings.NESTEDLOOPJOIN.getOptionName(), false);
 
@@ -259,7 +260,7 @@ public class TestLargeFileCompilation extends ClusterTest {
       run(LARGE_TABLE_WRITER, tableName);
       run(QUERY_WITH_JOIN, tableName);
     } finally {
-      client.resetSession(ExecConstants.HASHJOIN_FALLBACK_ENABLED_KEY);
+      client.resetSession(ExecOpt.HASH_JOIN_FALLBACK_ENABLED.key);
       client.resetSession(PlannerSettings.MERGEJOIN.getOptionName());
       client.resetSession(PlannerSettings.NESTEDLOOPJOIN.getOptionName());
       run("drop table if exists %s", tableName);

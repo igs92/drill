@@ -20,6 +20,7 @@ package org.apache.drill.exec.physical.impl.project;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.common.expression.FieldReference;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.SchemaChangeException;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.physical.config.Project;
@@ -268,7 +269,7 @@ public class ProjectRecordBatch extends AbstractSingleRecordBatch<Project> {
 
   private void setupNewSchemaFromInput(RecordBatch incomingBatch) {
     // get the output batch size from config.
-    int configuredBatchSize = (int) context.getOptions().getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
+    int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(context.getOptions());
     setupNewSchema(incomingBatch, configuredBatchSize);
 
     ProjectBatchBuilder batchBuilder = new ProjectBatchBuilder(this,

@@ -37,6 +37,7 @@ import org.apache.drill.common.exceptions.ExecutionSetupException;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.common.types.TypeProtos.MinorType;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.compile.CodeCompiler;
 import org.apache.drill.exec.coord.ClusterCoordinator;
 import org.apache.drill.exec.exception.OutOfMemoryException;
@@ -231,8 +232,8 @@ public class FragmentContextImpl extends BaseFragmentContext implements Executor
     stats = new FragmentStats(allocator, fragment.getAssignment());
     bufferManager = new BufferManagerImpl(this.allocator);
     constantValueHolderCache = new HashMap<>();
-    enableRuntimeFilter = this.getOptions().getOption(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY).bool_val;
-    enableRFWaiting = this.getOptions().getOption(ExecConstants.HASHJOIN_RUNTIME_FILTER_WAITING_ENABLE_KEY).bool_val && enableRuntimeFilter;
+    enableRuntimeFilter = ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.booleanFrom(getOptions());
+    enableRFWaiting = enableRuntimeFilter && ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.booleanFrom(getOptions());
     if (enableRFWaiting) {
       lock4RF = new ReentrantLock();
       condition4RF = lock4RF.newCondition();

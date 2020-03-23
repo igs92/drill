@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.drill.common.map.CaseInsensitiveMap;
 import org.apache.drill.common.types.TypeProtos.MajorType;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.OutOfMemoryException;
 import org.apache.drill.exec.record.MaterializedField;
 import org.apache.drill.exec.server.options.OptionManager;
@@ -274,7 +275,7 @@ public final class RecordBatchSizerManager {
 
     // Otherwise, use the common property
     if (maxMemory <= 0) {
-      maxMemory = options.getLong(ExecConstants.OUTPUT_BATCH_SIZE);
+      maxMemory = ExecOpt.OUTPUT_BATCH_SIZE.longFrom(options);
     }
     return maxMemory;
   }

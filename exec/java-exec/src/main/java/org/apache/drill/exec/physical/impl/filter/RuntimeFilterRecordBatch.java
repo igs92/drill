@@ -30,6 +30,7 @@ import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.expression.PathSegment;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.OutOfMemoryException;
 import org.apache.drill.exec.exception.SchemaChangeException;
 import org.apache.drill.exec.expr.ValueVectorReadExpression;
@@ -44,6 +45,7 @@ import org.apache.drill.exec.record.TypedFieldId;
 import org.apache.drill.exec.record.VectorWrapper;
 import org.apache.drill.exec.record.selection.SelectionVector2;
 import org.apache.drill.exec.record.selection.SelectionVector4;
+import org.apache.drill.exec.server.options.OptionManager;
 import org.apache.drill.exec.work.filter.BloomFilter;
 import org.apache.drill.exec.work.filter.RuntimeFilterWritable;
 import org.slf4j.Logger;
@@ -78,8 +80,9 @@ public class RuntimeFilterRecordBatch extends AbstractSingleRecordBatch<RuntimeF
   public RuntimeFilterRecordBatch(RuntimeFilterPOP pop, RecordBatch incoming,
       FragmentContext context) throws OutOfMemoryException {
     super(pop, context, incoming);
-    enableRFWaiting = context.getOptions().getBoolean(ExecConstants.HASHJOIN_RUNTIME_FILTER_WAITING_ENABLE_KEY);
-    maxWaitingTime = context.getOptions().getLong(ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME_KEY);
+    OptionManager options = context.getOptions();
+    enableRFWaiting = ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.booleanFrom(options);
+    maxWaitingTime = options.getLong(ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME_KEY);
     this.rfIdentifier = pop.getIdentifier();
   }
 

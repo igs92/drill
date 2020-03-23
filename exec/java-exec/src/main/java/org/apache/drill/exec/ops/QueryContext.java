@@ -27,6 +27,7 @@ import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.config.LogicalPlanPersistence;
 import org.apache.drill.common.types.TypeProtos.MinorType;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.expr.fn.FunctionImplementationRegistry;
 import org.apache.drill.exec.expr.fn.registry.RemoteFunctionRegistry;
 import org.apache.drill.exec.expr.holders.ValueHolder;
@@ -275,7 +276,7 @@ public class QueryContext implements AutoCloseable, OptimizerRulesContext, Schem
   }
 
   public boolean isRuntimeFilterEnabled() {
-    return this.getOption(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY).bool_val;
+    return ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.booleanFrom(getOptions());
   }
 
   public DrillOperatorTable getDrillOperatorTable() {

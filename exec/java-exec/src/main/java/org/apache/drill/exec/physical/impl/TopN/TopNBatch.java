@@ -29,6 +29,7 @@ import org.apache.drill.common.expression.ErrorCollectorImpl;
 import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.logical.data.Order.Ordering;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.compile.CodeCompiler;
 import org.apache.drill.exec.compile.sig.MappingSet;
 import org.apache.drill.exec.exception.OutOfMemoryException;
@@ -114,7 +115,7 @@ public class TopNBatch extends AbstractRecordBatch<TopN> {
     this.incoming = incoming;
     this.config = popConfig;
     DrillConfig drillConfig = context.getConfig();
-    batchPurgeThreshold = drillConfig.getInt(ExecConstants.BATCH_PURGE_THRESHOLD);
+    batchPurgeThreshold = ExecOpt.BATCH_PURGE_THRESHOLD.intFrom(drillConfig);
     codegenDump = drillConfig.getBoolean(CodeCompiler.ENABLE_SAVE_CODE_FOR_DEBUG_TOPN);
   }
 

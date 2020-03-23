@@ -29,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.proto.BitData;
@@ -85,7 +86,7 @@ public class SpoolingRawBatchBuffer extends BaseRawBatchBuffer<SpoolingRawBatchB
     super(context, fragmentCount, enableDynamicFC);
     this.allocator = context.getNewChildAllocator(
         "SpoolingRawBatchBufer", 100, ALLOCATOR_INITIAL_RESERVATION, ALLOCATOR_MAX_RESERVATION);
-    this.threshold = context.getConfig().getLong(ExecConstants.SPOOLING_BUFFER_MEMORY);
+    this.threshold = ExecOpt.SPOOLING_BUFFER_MEMORY.longFrom(context.getConfig());
     this.oppositeId = oppositeId;
     this.bufferIndex = bufferIndex;
     this.bufferQueue = new SpoolingBufferQueue();
@@ -175,7 +176,7 @@ public class SpoolingRawBatchBuffer extends BaseRawBatchBuffer<SpoolingRawBatchB
   }
 
   public String getDir() {
-    List<String> dirs = context.getConfig().getStringList(ExecConstants.TEMP_DIRECTORIES);
+    List<String> dirs = ExecOpt.TMP_DIRS.stringListFrom(context.getConfig());
     return dirs.get(ThreadLocalRandom.current().nextInt(dirs.size()));
   }
 
@@ -185,7 +186,7 @@ public class SpoolingRawBatchBuffer extends BaseRawBatchBuffer<SpoolingRawBatchB
     }
 
     Configuration conf = new Configuration();
-    conf.set(FileSystem.FS_DEFAULT_NAME_KEY, context.getConfig().getString(ExecConstants.TEMP_FILESYSTEM));
+    conf.set(FileSystem.FS_DEFAULT_NAME_KEY, ExecOpt.TMP_FS.stringFrom(context.getConfig()));
     conf.set(DRILL_LOCAL_IMPL_STRING, LocalSyncableFileSystem.class.getName());
     fs = FileSystem.get(conf);
     path = getPath();
@@ -265,7 +266,7 @@ public class SpoolingRawBatchBuffer extends BaseRawBatchBuffer<SpoolingRawBatchB
     } catch (IOException e) {
       logger.warn("Failed to cleanup I/O streams", e);
     }
-    if (context.getConfig().getBoolean(ExecConstants.SPOOLING_BUFFER_DELETE)) {
+    if (ExecOpt.SPOOLING_BUFFER_DELETE.boolFrom(context.getConfig())) {
       try {
         if (fs != null) {
           fs.delete(path, false);

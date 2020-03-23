@@ -21,6 +21,7 @@ import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceInstanceBuilder;
 import org.apache.curator.x.discovery.details.InstanceSerializer;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillServiceInstance;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
 
@@ -46,7 +47,7 @@ public class DrillServiceInstanceHelper {
       DrillServiceInstance i = DrillServiceInstance.parseFrom(bytes);
       ServiceInstanceBuilder<DrillbitEndpoint> b = ServiceInstance.<DrillbitEndpoint>builder();
       b.id(i.getId());
-      b.name(ExecConstants.SERVICE_NAME);
+      b.name(ExecOpt.SERVICE_NAME.key);
       b.registrationTimeUTC(i.getRegistrationTimeUTC());
       b.payload(i.getEndpoint());
       return b.build();

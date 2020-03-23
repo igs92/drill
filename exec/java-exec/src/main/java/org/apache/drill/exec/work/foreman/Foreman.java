@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.work.foreman;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.work.filter.RuntimeFilterRouter;
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
@@ -155,7 +156,7 @@ public class Foreman implements Runnable {
     this.queryRM = drillbitContext.getResourceManager().newQueryRM(this);
     this.fragmentsRunner = new FragmentsRunner(bee, initiatingClient, drillbitContext, this);
     this.queryStateProcessor = new QueryStateProcessor(queryIdString, queryManager, drillbitContext, new ForemanResult());
-    this.enableRuntimeFilter = queryContext.getOptions().getOption(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY).bool_val;
+    this.enableRuntimeFilter = ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.booleanFrom(queryContext.getOptions());
   }
 
   /**

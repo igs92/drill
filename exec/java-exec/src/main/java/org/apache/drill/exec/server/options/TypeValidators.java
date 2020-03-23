@@ -17,35 +17,81 @@
  */
 package org.apache.drill.exec.server.options;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Set;
-
-import org.apache.drill.shaded.guava.com.google.common.base.Joiner;
-import org.apache.drill.shaded.guava.com.google.common.collect.Sets;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.common.util.DrillStringUtils;
 import org.apache.drill.exec.ExecConstants;
 import org.apache.drill.exec.server.options.OptionValue.Kind;
 import org.apache.drill.exec.util.ImpersonationUtil;
+import org.apache.drill.shaded.guava.com.google.common.base.Joiner;
+import org.apache.drill.shaded.guava.com.google.common.collect.Sets;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Set;
+import java.util.function.BiFunction;
 
 public class TypeValidators {
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TypeValidators.class);
-  public static class NonNegativeLongValidator extends LongValidator {
-    private final long max;
 
-    public NonNegativeLongValidator(String name, long max, OptionDescription description) {
-      super(name, description);
-      this.max = max;
+  public static Builder positiveLong(long max) {
+    return new Builder((key, desc) -> new PositiveLongValidator(key, max, desc));
+  }
+
+  public static Builder positiveLong() {
+    return positiveLong(Long.MAX_VALUE);
+  }
+
+  public static Builder longRange(long min, long max) {
+    return new Builder((key, desc) -> new RangeLongValidator(key, min, max, desc));
+  }
+
+  public static Builder doubleRange(double min, double max) {
+    return new Builder((key, desc) -> new RangeDoubleValidator(key, min, max, desc));
+  }
+
+  public static Builder acceptStrings(String... vals) {
+    return new Builder((key, desc) -> new EnumeratedStringValidator(key, desc, vals));
+  }
+
+  public static Builder booleanType() {
+    return new Builder(BooleanValidator::new);
+  }
+
+  public static Builder intType() {
+    return new Builder(IntegerValidator::new);
+  }
+
+  public static class Builder {
+    private String key;
+    private String desc;
+    private String shortDesc;
+    private BiFunction<String, OptionValidator.OptionDescription, OptionValidator> buildFunc;
+
+    public Builder(BiFunction<String, OptionValidator.OptionDescription, OptionValidator> buildFunc) {
+      this.buildFunc = buildFunc;
     }
 
-    @Override
-    public void validate(final OptionValue v, final OptionMetaData metaData, final OptionSet manager) {
-      super.validate(v, metaData, manager);
-      if (v.num_val > max || v.num_val < 0) {
-        throw UserException.validationError()
-            .message(String.format("Option %s must be between %d and %d.", getOptionName(), 0, max))
-            .build(logger);
-      }
+    public Builder key(String key) {
+      this.key = key;
+      return this;
+    }
+
+    public Builder desc(String desc) {
+      this.desc = desc;
+      return this;
+    }
+
+    public Builder shortDesc(String shortDesc) {
+      this.shortDesc = shortDesc;
+      return this;
+    }
+
+    public OptionValidator build() {
+      return buildFunc.apply(key, buildDescription());
+    }
+
+    private OptionValidator.OptionDescription buildDescription() {
+      return (desc == null && shortDesc == null)
+          ? null : new OptionValidator.OptionDescription(desc, shortDesc);
     }
   }
 
@@ -124,9 +170,9 @@ public class TypeValidators {
       OptionValue maxValue = manager.getOption(maxValidatorName);
       if (v.float_val > maxValue.float_val) {
         throw UserException.validationError()
-                .message(String.format("Option %s must be less than or equal to Option %s",
-                        getOptionName(), maxValidatorName))
-                .build(logger);
+            .message(String.format("Option %s must be less than or equal to Option %s",
+                getOptionName(), maxValidatorName))
+            .build(logger);
       }
     }
   }
@@ -145,9 +191,9 @@ public class TypeValidators {
       OptionValue minValue = manager.getOption(minValidatorName);
       if (v.float_val < minValue.float_val) {
         throw UserException.validationError()
-                .message(String.format("Option %s must be greater than or equal to Option %s",
-                        getOptionName(), minValidatorName))
-                .build(logger);
+            .message(String.format("Option %s must be greater than or equal to Option %s",
+                getOptionName(), minValidatorName))
+            .build(logger);
       }
     }
   }
@@ -186,8 +232,8 @@ public class TypeValidators {
       super.validate(v, metaData, manager);
       if (v.num_val > Integer.MAX_VALUE || v.num_val < Integer.MIN_VALUE) {
         throw UserException.validationError()
-          .message(String.format("Option %s does not have a valid integer value", getOptionName()))
-          .build(logger);
+            .message(String.format("Option %s does not have a valid integer value", getOptionName()))
+            .build(logger);
       }
     }
   }
@@ -285,12 +331,13 @@ public class TypeValidators {
     }
   }
 
-  /** Max width is a special validator which computes and validates
-   *  the maxwidth. If the maxwidth is already set in system/session
+  /**
+   * Max width is a special validator which computes and validates
+   * the maxwidth. If the maxwidth is already set in system/session
    * the value is returned or else it is computed dynamically based on
    * the available number of processors and cpu load average
    */
-  public static class MaxWidthValidator extends LongValidator{
+  public static class MaxWidthValidator extends LongValidator {
     public MaxWidthValidator(String name, OptionDescription description) {
       super(name, description);
     }
@@ -347,7 +394,7 @@ public class TypeValidators {
       if (v.kind != kind) {
         throw UserException.validationError()
             .message(String.format("Option %s must be of type %s but you tried to set to %s.", getOptionName(),
-              kind.name(), v.kind.name()))
+                kind.name(), v.kind.name()))
             .build(logger);
       }
     }

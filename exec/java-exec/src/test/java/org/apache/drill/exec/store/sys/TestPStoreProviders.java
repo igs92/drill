@@ -25,6 +25,7 @@ import org.apache.drill.categories.SlowTest;
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.util.DrillFileUtils;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.TestWithZookeeper;
 import org.apache.drill.exec.coord.zk.PathUtils;
 import org.apache.drill.exec.coord.zk.ZookeeperClient;
@@ -150,9 +151,9 @@ public class TestPStoreProviders extends TestWithZookeeper {
     DrillConfig config = zkHelper.getConfig();
 
     CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-      .namespace(zkHelper.getConfig().getString(ExecConstants.ZK_ROOT))
+      .namespace(ExecOpt.ZK_ROOT.stringFrom(config))
       .retryPolicy(new RetryNTimes(1, 100))
-      .connectionTimeoutMs(config.getInt(ExecConstants.ZK_TIMEOUT))
+      .connectionTimeoutMs(ExecOpt.ZK_TIMEOUT.intFrom(config))
       .connectString(connect);
 
     return builder.build();

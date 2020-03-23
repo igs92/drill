@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.join;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +134,7 @@ public class MergeJoinBatch extends AbstractBinaryRecordBatch<MergeJoinPOP> {
     super(popConfig, context, true, left, right);
 
     // Instantiate the batch memory manager
-    final int configuredBatchSize = (int) context.getOptions().getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
+    final int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(context.getOptions());
     batchMemoryManager = new MergeJoinMemoryManager(configuredBatchSize, left, right);
 
     RecordBatchStats.printConfiguredBatchSize(getRecordBatchStatsContext(),

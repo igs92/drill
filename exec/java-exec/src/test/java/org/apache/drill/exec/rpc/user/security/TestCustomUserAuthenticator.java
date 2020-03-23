@@ -20,6 +20,7 @@ package org.apache.drill.exec.rpc.user.security;
 import org.apache.drill.categories.SecurityTest;
 import org.apache.drill.common.config.DrillProperties;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.rpc.RpcException;
 import org.apache.drill.exec.rpc.user.security.testing.UserAuthenticatorTestImpl;
 import org.apache.drill.test.ClientFixture;
@@ -70,8 +71,8 @@ public class TestCustomUserAuthenticator extends ClusterTest {
     // Setup a separate cluster
     ClusterFixtureBuilder builder = ClusterFixture.bareBuilder(dirTestWatcher)
         .configProperty(ExecConstants.ALLOW_LOOPBACK_ADDRESS_BINDING, true)
-        .configProperty(ExecConstants.INITIAL_USER_PORT, QueryTestUtil.getFreePortNumber(31170, 300))
-        .configProperty(ExecConstants.INITIAL_BIT_PORT, QueryTestUtil.getFreePortNumber(31180, 300));
+        .configProperty(ExecOpt.USER_PORT.key, QueryTestUtil.getFreePortNumber(31170, 300))
+        .configProperty(ExecOpt.BIT_PORT.key, QueryTestUtil.getFreePortNumber(31180, 300));
 
     // Setup specific auth settings
     ClusterFixture cluster = builder.configProperty(ExecConstants.USER_AUTHENTICATION_ENABLED, false)

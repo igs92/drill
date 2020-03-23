@@ -26,6 +26,7 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.QueryContext;
 import org.apache.drill.exec.planner.physical.BroadcastExchangePrel;
 import org.apache.drill.exec.planner.physical.ExchangePrel;
@@ -38,6 +39,7 @@ import org.apache.drill.exec.planner.physical.ScanPrel;
 import org.apache.drill.exec.planner.physical.SortPrel;
 import org.apache.drill.exec.planner.physical.StreamAggPrel;
 import org.apache.drill.exec.planner.physical.TopNPrel;
+import org.apache.drill.exec.server.options.QueryOptionManager;
 import org.apache.drill.exec.work.filter.BloomFilter;
 import org.apache.drill.exec.work.filter.BloomFilterDef;
 import org.apache.drill.exec.work.filter.RuntimeFilterDef;
@@ -68,8 +70,9 @@ public class RuntimeFilterVisitor extends BasePrelVisitor<Prel, Void, RuntimeExc
   private static final AtomicLong rfIdCounter = new AtomicLong();
 
   private RuntimeFilterVisitor(QueryContext queryContext) {
-    this.bloomFilterMaxSizeInBytesDef = queryContext.getOption(ExecConstants.HASHJOIN_BLOOM_FILTER_MAX_SIZE_KEY).num_val.intValue();
-    this.fpp = queryContext.getOption(ExecConstants.HASHJOIN_BLOOM_FILTER_FPP_KEY).float_val;
+    QueryOptionManager options = queryContext.getOptions();
+    this.bloomFilterMaxSizeInBytesDef = ExecOpt.HASH_JOIN_BLOOM_FILTER_MAX_SIZE.intFrom(options);
+    this.fpp = ExecOpt.HASH_JOIN_BLOOM_FILTER_FPP.doubleFrom(options);
   }
 
   public static Prel addRuntimeFilter(Prel prel, QueryContext queryContext) {

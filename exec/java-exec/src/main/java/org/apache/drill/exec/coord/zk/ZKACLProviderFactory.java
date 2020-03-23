@@ -18,10 +18,9 @@
 package org.apache.drill.exec.coord.zk;
 
 import org.apache.drill.common.config.DrillConfig;
-import static org.apache.drill.exec.ExecConstants.ZK_ACL_PROVIDER;
-import static org.apache.drill.exec.ExecConstants.ZK_APPLY_SECURE_ACL;
 
 import org.apache.drill.common.scanner.persistence.ScanResult;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.DrillbitStartupException;
 import org.apache.drill.exec.server.BootStrapContext;
 import org.apache.drill.shaded.guava.com.google.common.base.Strings;
@@ -42,7 +41,7 @@ public class ZKACLProviderFactory {
             throws DrillbitStartupException {
         ZKACLContextProvider stateProvider = new ZKACLContextProviderImpl(drillClusterPath);
 
-        if (config.getBoolean(ZK_APPLY_SECURE_ACL)) {
+        if (ExecOpt.ZK_APPLY_SECURE_ACL.boolFrom(config)) {
             logger.trace("Using secure ZK ACL. Drill cluster path " + drillClusterPath);
             ZKACLProviderDelegate aclProvider = findACLProvider(config, stateProvider, context);
             return aclProvider;
@@ -54,15 +53,15 @@ public class ZKACLProviderFactory {
 
     public static ZKACLProviderDelegate findACLProvider(DrillConfig config, ZKACLContextProvider contextProvider,
                                                         BootStrapContext context) throws DrillbitStartupException {
-        if (!config.hasPath(ZK_ACL_PROVIDER)) {
-            throw new DrillbitStartupException(String.format("BOOT option '%s' is missing in config.", ZK_ACL_PROVIDER));
+        if (ExecOpt.ZK_ACL_PROVIDER.notIn(config)) {
+            throw new DrillbitStartupException(String.format("BOOT option '%s' is missing in config.", ExecOpt.ZK_ACL_PROVIDER.key));
         }
 
-        final String aclProviderName = config.getString(ZK_ACL_PROVIDER);
+        final String aclProviderName = ExecOpt.ZK_ACL_PROVIDER.stringFrom(config);
 
         if (Strings.isNullOrEmpty(aclProviderName)) {
             throw new DrillbitStartupException(String.format("Invalid value '%s' for BOOT option '%s'", aclProviderName,
-                    ZK_ACL_PROVIDER));
+                    ExecOpt.ZK_ACL_PROVIDER.key));
         }
 
         ScanResult scan = context.getClasspathScan();

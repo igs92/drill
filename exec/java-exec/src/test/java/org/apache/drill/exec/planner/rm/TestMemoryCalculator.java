@@ -20,6 +20,7 @@ package org.apache.drill.exec.planner.rm;
 
 import org.apache.drill.PlanTestBase;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.QueryContext;
 import org.apache.drill.exec.planner.PhysicalPlanReader;
 import org.apache.drill.exec.planner.cost.NodeResource;
@@ -134,7 +135,7 @@ public class TestMemoryCalculator extends PlanTestBase {
   private String getPlanForQuery(String query, long outputBatchSize,
                                  long slice_target) throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher)
-      .setOptionDefault(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize)
+      .setOptionDefault(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize)
       .setOptionDefault(ExecConstants.SLICE_TARGET, slice_target);
     String plan;
 

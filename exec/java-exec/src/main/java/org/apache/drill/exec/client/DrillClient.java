@@ -42,6 +42,7 @@ import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.config.DrillProperties;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.coord.ClusterCoordinator;
 import org.apache.drill.exec.coord.zk.ZKClusterCoordinator;
 import org.apache.drill.exec.exception.OutOfMemoryException;
@@ -167,8 +168,8 @@ public class DrillClient implements Closeable, ConnectionThrottle {
     this.allocator = ownsAllocator ? RootAllocatorFactory.newRoot(config) : allocator;
     this.config = config;
     this.clusterCoordinator = coordinator;
-    this.reconnectTimes = config.getInt(ExecConstants.BIT_RETRY_TIMES);
-    this.reconnectDelay = config.getInt(ExecConstants.BIT_RETRY_DELAY);
+    this.reconnectTimes = ExecOpt.BIT_RETRY_TIMES.intFrom(config);
+    this.reconnectDelay = ExecOpt.BIT_RETRY_DELAY.intFrom(config);
     this.supportComplexTypes = config.getBoolean(ExecConstants.CLIENT_SUPPORT_COMPLEX_TYPES);
   }
 
@@ -330,7 +331,7 @@ public class DrillClient implements Closeable, ConnectionThrottle {
     if (isDirectConnection) {
       // Populate the endpoints list with all the drillbit information provided in the connection string
       endpoints.addAll(parseAndVerifyEndpoints(properties.getProperty(DrillProperties.DRILLBIT_CONNECTION),
-                                               config.getString(ExecConstants.INITIAL_USER_PORT)));
+                                               ExecOpt.USER_PORT.stringFrom(config)));
     } else {
       if (ownsZkConnection) {
         try {
@@ -351,7 +352,7 @@ public class DrillClient implements Closeable, ConnectionThrottle {
     // shuffle the collection then get the first endpoint
     Collections.shuffle(endpoints);
 
-    eventLoopGroup = createEventLoop(config.getInt(ExecConstants.CLIENT_RPC_THREADS), "Client-");
+    eventLoopGroup = createEventLoop(ExecOpt.CLIENT_RPC_THREADS.intFrom(config), "Client-");
     executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(),
         new NamedThreadFactory("drill-client-executor-")) {

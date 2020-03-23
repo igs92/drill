@@ -34,6 +34,7 @@ import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.map.CaseInsensitiveMap;
 import org.apache.drill.common.scanner.persistence.ScanResult;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.DrillbitStartupException;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.memory.RootAllocatorFactory;
@@ -81,8 +82,8 @@ public class BootStrapContext implements AutoCloseable {
     this.hostName = getCanonicalHostName();
     login(config);
     this.authProvider = new AuthenticatorProviderImpl(config, classpathScan);
-    this.loop = TransportCheck.createEventLoopGroup(config.getInt(ExecConstants.BIT_SERVER_RPC_THREADS), "BitServer-");
-    this.loop2 = TransportCheck.createEventLoopGroup(config.getInt(ExecConstants.BIT_SERVER_RPC_THREADS), "BitClient-");
+    this.loop = TransportCheck.createEventLoopGroup(ExecOpt.BIT_SERVER_RPC_THREADS.intFrom(config), "BitServer-");
+    this.loop2 = TransportCheck.createEventLoopGroup(ExecOpt.BIT_SERVER_RPC_THREADS.intFrom(config), "BitClient-");
     // Note that metrics are stored in a static instance
     this.metrics = DrillMetrics.getRegistry();
     this.allocator = RootAllocatorFactory.newRoot(config);

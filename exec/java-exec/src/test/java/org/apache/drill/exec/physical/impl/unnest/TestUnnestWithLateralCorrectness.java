@@ -17,6 +17,8 @@
  */
 package org.apache.drill.exec.physical.impl.unnest;
 
+import org.apache.drill.exec.ExecOpt;
+import org.apache.drill.exec.server.options.OptionManager;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.drill.categories.OperatorTest;
@@ -326,16 +328,16 @@ public class TestUnnestWithLateralCorrectness extends SubOperatorTest {
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-      .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, data, baseline, excludeUnnestColumn);
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
   }
 
@@ -418,16 +420,16 @@ public class TestUnnestWithLateralCorrectness extends SubOperatorTest {
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-        .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitedOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitedOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, -1, 1, data, baseline, false); // Limit of 100 values for unnest.
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
   }
 
@@ -475,16 +477,16 @@ public class TestUnnestWithLateralCorrectness extends SubOperatorTest {
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-        .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitedOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitedOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, -1, 1, data, baseline, false); // Limit of 100 values for unnest.
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
   }
 

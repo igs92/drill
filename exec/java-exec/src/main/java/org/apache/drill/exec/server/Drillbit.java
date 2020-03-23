@@ -26,6 +26,7 @@ import org.apache.drill.common.map.CaseInsensitiveMap;
 import org.apache.drill.common.scanner.ClassPathScanner;
 import org.apache.drill.common.scanner.persistence.ScanResult;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.coord.ClusterCoordinator;
 import org.apache.drill.exec.coord.ClusterCoordinator.RegistrationHandle;
 import org.apache.drill.exec.coord.zk.ZKACLProviderFactory;
@@ -177,8 +178,8 @@ public class Drillbit implements AutoCloseable {
       coord = serviceSet.getCoordinator();
       storeProvider = new CachingPersistentStoreProvider(new LocalPersistentStoreProvider(config));
     } else {
-      String clusterId = config.getString(ExecConstants.SERVICE_NAME);
-      String zkRoot = config.getString(ExecConstants.ZK_ROOT);
+      String clusterId = ExecOpt.SERVICE_NAME.stringFrom(config);
+      String zkRoot = ExecOpt.ZK_ROOT.stringFrom(config);
       String drillClusterPath = "/" + zkRoot + "/" +  clusterId;
       ACLProvider aclProvider = ZKACLProviderFactory.getACLProvider(config, drillClusterPath, context);
       coord = new ZKClusterCoordinator(config, aclProvider);
@@ -304,7 +305,7 @@ public class Drillbit implements AutoCloseable {
       coord.unregister(registrationHandle);
     }
     try {
-      Thread.sleep(context.getConfig().getInt(ExecConstants.ZK_REFRESH) * 2);
+      Thread.sleep(ExecOpt.ZK_REFRESH.intFrom(context.getConfig()) * 2);
     } catch (final InterruptedException e) {
       logger.warn("Interrupted while sleeping during coordination deregistration.");
 

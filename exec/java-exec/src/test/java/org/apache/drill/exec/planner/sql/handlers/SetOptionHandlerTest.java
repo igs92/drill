@@ -20,6 +20,7 @@ package org.apache.drill.exec.planner.sql.handlers;
 import org.apache.drill.categories.SqlTest;
 import org.apache.drill.common.exceptions.UserRemoteException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.compile.ClassCompilerSelector;
 import org.apache.drill.test.ClusterFixture;
 import org.apache.drill.test.ClusterTest;
@@ -72,17 +73,17 @@ public class SetOptionHandlerTest extends ClusterTest {
         .go();
 
     testBuilder()  // BIGINT
-        .sqlQuery("SET `%s`", ExecConstants.OUTPUT_BATCH_SIZE)
+        .sqlQuery("SET `%s`", ExecOpt.OUTPUT_BATCH_SIZE.key)
         .unOrdered()
         .sqlBaselineQuery("SELECT name, val as value FROM sys.options where name = '%s' limit 1",
-            ExecConstants.OUTPUT_BATCH_SIZE)
+            ExecOpt.OUTPUT_BATCH_SIZE.key)
         .go();
 
     testBuilder()  // FLOAT
-        .sqlQuery("SET `%s`", ExecConstants.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR)
+        .sqlQuery("SET `%s`", ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR.key)
         .unOrdered()
         .sqlBaselineQuery("SELECT name, val as value FROM sys.options where name = '%s' limit 1",
-            ExecConstants.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR)
+            ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR.key)
         .go();
 
     testBuilder()  // VARCHAR

@@ -22,6 +22,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.record.RawFragmentBatch;
 
@@ -50,7 +51,7 @@ public class UnlimitedRawBatchBuffer extends BaseRawBatchBuffer<RawFragmentBatch
     this.fragmentCount = fragmentCount;
     this.sampleTimes = fragmentCount;
     this.maxSampleTimes = fragmentCount;
-    this.thresholdNetworkMem = context.getConfig().getLong(ExecConstants.UNLIMITED_BUFFER_MAX_MEMORY_SIZE);
+    this.thresholdNetworkMem = ExecOpt.UNLIMITED_BUFFER_MAX_MEMORY_SIZE.longFrom(context.getConfig());
   }
 
   private class UnlimitedBufferQueue implements BufferQueue<RawFragmentBatch> {

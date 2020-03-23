@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +134,7 @@ public class NestedLoopJoinBatch extends AbstractBinaryRecordBatch<NestedLoopJoi
     Preconditions.checkNotNull(right);
 
     // get the output batch size from config.
-    int configuredBatchSize = (int) context.getOptions().getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
+    int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(context.getOptions());
     batchMemoryManager = new JoinBatchMemoryManager(configuredBatchSize, left, right, new HashSet<>());
 
     RecordBatchStats.printConfiguredBatchSize(getRecordBatchStatsContext(),

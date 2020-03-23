@@ -27,6 +27,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.drill.categories.SlowTest;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.test.BaseTestQuery.SilentListener;
 import org.apache.drill.test.ClusterFixture;
 import org.apache.drill.test.ClusterFixtureBuilder;
@@ -102,7 +103,7 @@ public class TestTpchDistributedConcurrent extends ClusterTest {
   @BeforeClass
   public static void setUp() throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher)
-        .configProperty(ExecConstants.USER_RPC_TIMEOUT, 5_000);
+        .configProperty(ExecOpt.USER_TIMEOUT.key, 5_000);
     startCluster(builder);
   }
 

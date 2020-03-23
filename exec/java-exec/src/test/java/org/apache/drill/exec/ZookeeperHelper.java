@@ -72,7 +72,7 @@ public class ZookeeperHelper {
     config = DrillConfig.create(overrideProps);
 
     if (!autoPort) {
-      zkUrl = config.getString(ExecConstants.ZK_CONNECTION);
+      zkUrl = ExecOpt.ZK_CONNECTION.stringFrom(config);
     }
 
     testDir.mkdirs();

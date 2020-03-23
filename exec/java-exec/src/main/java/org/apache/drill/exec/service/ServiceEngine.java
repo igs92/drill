@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.drill.common.AutoCloseables;
 import org.apache.drill.common.util.DrillVersionInfo;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.DrillbitStartupException;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
@@ -74,13 +75,13 @@ public class ServiceEngine implements AutoCloseable {
         "drill.exec.rpc.bit.server.memory.data.reservation", "drill.exec.rpc.bit.server.memory.data.maximum");
 
     final EventLoopGroup eventLoopGroup = TransportCheck.createEventLoopGroup(
-        context.getConfig().getInt(ExecConstants.USER_SERVER_RPC_THREADS), "UserServer-");
+        ExecOpt.USER_SERVER_RPC_THREADS.intFrom(context.getConfig()), "UserServer-");
     userServer = new UserServer(context, userAllocator, eventLoopGroup, manager.getUserWorker());
     controller = new ControllerImpl(context, controlAllocator, manager.getControlMessageHandler());
     dataPool = new DataConnectionCreator(context, dataAllocator, manager.getWorkBus(), manager.getBee());
 
     hostName = context.getHostName();
-    intialUserPort = context.getConfig().getInt(ExecConstants.INITIAL_USER_PORT);
+    intialUserPort = ExecOpt.USER_PORT.intFrom(context.getConfig());
     this.allowPortHunting = allowPortHunting;
     this.isDistributedMode = isDistributedMode;
   }

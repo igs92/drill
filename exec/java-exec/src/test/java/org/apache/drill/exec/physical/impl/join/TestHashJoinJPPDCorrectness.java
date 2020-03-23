@@ -19,6 +19,7 @@ package org.apache.drill.exec.physical.impl.join;
 
 import org.apache.drill.categories.SqlTest;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.test.ClusterFixture;
 import org.apache.drill.test.ClusterTest;
 import org.junit.After;
@@ -34,10 +35,10 @@ import java.nio.file.Paths;
 public class TestHashJoinJPPDCorrectness extends ClusterTest {
 
   private static final String ALTER_RUNTIME_FILTER_OPTION_COMMAND = "ALTER SESSION SET `" +
-    ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY + "` = %s";
+    ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.key + "` = %s";
 
   private static final String ALTER_RUNTIME_FILTER_WAITING_OPTION_COMMAND = "ALTER SESSION SET `" +
-    ExecConstants.HASHJOIN_RUNTIME_FILTER_WAITING_ENABLE_KEY + "` = %s";
+    ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.key + "` = %s";
 
   private static final String ALTER_RUNTIME_FILTER_WAIT_TIME_OPTION_COMMAND = "ALTER SESSION SET `" +
     ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME_KEY + "` = %d";
@@ -59,7 +60,7 @@ public class TestHashJoinJPPDCorrectness extends ClusterTest {
 
   @After
   public void tearDown() {
-    client.resetSession(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY);
+    client.resetSession(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.key);
     client.resetSession(ExecConstants.HASHJOIN_RUNTIME_FILTER_WAITING_ENABLE_KEY);
   }
 
@@ -72,7 +73,7 @@ public class TestHashJoinJPPDCorrectness extends ClusterTest {
   public void testRuntimeFilterPresentInPlan() throws Exception {
     String sql = "SELECT l.n_name, r.r_name FROM dfs.`tpchmulti/nation` l, dfs.`tpchmulti/region/` r where " +
       "l.n_regionkey = r.r_regionkey";
-    client.alterSession(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_KEY, true);
+    client.alterSession(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.key, true);
     String queryPlan = queryBuilder().sql(sql).explainText();
     assertThat("Query plan doesn't contain RuntimeFilter. This may happen if plan is not distributed and has no " +
         "exchange operator in it.", queryPlan, containsString("RuntimeFilter"));

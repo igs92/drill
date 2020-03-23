@@ -23,6 +23,7 @@ import org.apache.drill.common.config.LogicalPlanPersistence;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.common.map.CaseInsensitiveMap;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.compile.ClassCompilerSelector;
 import org.apache.drill.exec.planner.physical.PlannerSettings;
 import org.apache.drill.exec.store.sys.PersistentStore;
@@ -131,14 +132,14 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       new OptionDefinition(PlannerSettings.FORCE_2PHASE_AGGR), // for testing
       new OptionDefinition(PlannerSettings.STATISTICS_USE),
       new OptionDefinition(PlannerSettings.STATISTICS_MULTICOL_NDV_ADJUST_FACTOR),
-      new OptionDefinition(ExecConstants.HASHJOIN_NUM_PARTITIONS_VALIDATOR),
-      new OptionDefinition(ExecConstants.HASHJOIN_MAX_MEMORY_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
-      new OptionDefinition(ExecConstants.HASHJOIN_NUM_ROWS_IN_BATCH_VALIDATOR),
-      new OptionDefinition(ExecConstants.HASHJOIN_MAX_BATCHES_IN_MEMORY_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, false, true)),
-      new OptionDefinition(ExecConstants.HASHJOIN_FALLBACK_ENABLED_VALIDATOR), // for enable/disable unbounded HashJoin
-      new OptionDefinition(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER),
-      new OptionDefinition(ExecConstants.HASHJOIN_BLOOM_FILTER_MAX_SIZE),
-      new OptionDefinition(ExecConstants.HASHJOIN_BLOOM_FILTER_FPP_VALIDATOR),
+      new OptionDefinition(ExecOpt.HASH_JOIN_PARTITIONS_COUNT.validator),
+      new OptionDefinition(ExecOpt.HASH_JOIN_MAX_MEMORY.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_ROWS_IN_BATCH.validator),
+      new OptionDefinition(ExecOpt.HASH_JOIN_MAX_BATCHES_IN_MEMORY.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, false, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_FALLBACK_ENABLED.validator),
+      new OptionDefinition(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.validator),
+      new OptionDefinition(ExecOpt.HASH_JOIN_BLOOM_FILTER_MAX_SIZE.validator),
+      new OptionDefinition(ExecOpt.HASH_JOIN_BLOOM_FILTER_FPP.validator),
       new OptionDefinition(ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME),
       new OptionDefinition(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_WAITING),
       // ------------------------------------------- Index planning related options BEGIN --------------------------------------------------------------
@@ -242,10 +243,10 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       new OptionDefinition(ExecConstants.MIN_MEMORY_PER_BUFFERED_OP),
       new OptionDefinition(ExecConstants.NON_BLOCKING_OPERATORS_MEMORY),
       new OptionDefinition(ExecConstants.HASH_JOIN_TABLE_FACTOR),
-      new OptionDefinition(ExecConstants.HASHJOIN_HASHTABLE_CALC_TYPE, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.HASHJOIN_SAFETY_FACTOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.HASHJOIN_HASH_DOUBLE_FACTOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.HASHJOIN_FRAGMENTATION_FACTOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_HASHTABLE_CALC_TYPE.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_SAFETY_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_HASH_DOUBLE_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
+      new OptionDefinition(ExecOpt.HASH_JOIN_FRAGMENTATION_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
       new OptionDefinition(ExecConstants.HASH_AGG_TABLE_FACTOR),
       new OptionDefinition(ExecConstants.AVERAGE_FIELD_WIDTH),
       new OptionDefinition(ExecConstants.NEW_VIEW_DEFAULT_PERMS_VALIDATOR),
@@ -281,7 +282,6 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       new OptionDefinition(ExecConstants.CODE_GEN_EXP_IN_METHOD_SIZE_VALIDATOR),
       new OptionDefinition(ExecConstants.CREATE_PREPARE_STATEMENT_TIMEOUT_MILLIS_VALIDATOR),
       new OptionDefinition(ExecConstants.DYNAMIC_UDF_SUPPORT_ENABLED_VALIDATOR,  new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.EXTERNAL_SORT_DISABLE_MANAGED_OPTION),
       new OptionDefinition(ExecConstants.ENABLE_QUERY_PROFILE_VALIDATOR),
       new OptionDefinition(ExecConstants.SKIP_SESSION_QUERY_PROFILE_VALIDATOR),
       new OptionDefinition(ExecConstants.QUERY_PROFILE_DEBUG_VALIDATOR),
@@ -291,12 +291,12 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       new OptionDefinition(ExecConstants.CPU_LOAD_AVERAGE),
       new OptionDefinition(ExecConstants.ENABLE_VECTOR_VALIDATOR),
       new OptionDefinition(ExecConstants.ENABLE_ITERATOR_VALIDATOR),
-      new OptionDefinition(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
+      new OptionDefinition(ExecOpt.OUTPUT_BATCH_SIZE.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
       new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_SIZE_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
       new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_FG_SIZE_VALIDATOR,new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
       new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_OPERATOR_VALIDATOR,new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.FRAG_RUNNER_RPC_TIMEOUT_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
+      new OptionDefinition(ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
+      new OptionDefinition(ExecOpt.FRAG_RUNNER_RPC_TIMEOUT.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
       new OptionDefinition(ExecConstants.LIST_FILES_RECURSIVELY_VALIDATOR),
       new OptionDefinition(ExecConstants.QUERY_ROWKEYJOIN_BATCHSIZE),
       new OptionDefinition(ExecConstants.RETURN_RESULT_SET_FOR_DDL_VALIDATOR),

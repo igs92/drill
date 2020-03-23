@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.BitControl.BitControlHandshake;
 import org.apache.drill.exec.proto.BitControl.CustomMessage;
 import org.apache.drill.exec.proto.BitControl.FinishedReceiver;
@@ -43,7 +44,7 @@ public class ControlRpcConfig {
     return RpcConfig.newBuilder()
         .name("CONTROL")
         .executor(executor)
-        .timeout(config.getInt(ExecConstants.BIT_RPC_TIMEOUT))
+        .timeout(ExecOpt.BIT_RPC_TIMEOUT.intFrom(config))
         .add(RpcType.HANDSHAKE, BitControlHandshake.class, RpcType.HANDSHAKE, BitControlHandshake.class)
         .add(RpcType.REQ_INITIALIZE_FRAGMENTS, InitializeFragments.class, RpcType.ACK, Ack.class)
         .add(RpcType.REQ_CANCEL_FRAGMENT, FragmentHandle.class, RpcType.ACK, Ack.class)

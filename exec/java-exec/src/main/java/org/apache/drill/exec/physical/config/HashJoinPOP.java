@@ -19,6 +19,7 @@ package org.apache.drill.exec.physical.config;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.annotations.VisibleForTesting;
 import org.apache.drill.common.logical.data.JoinCondition;
 import org.apache.drill.exec.ExecConstants;
@@ -156,7 +157,7 @@ public class HashJoinPOP extends AbstractJoinPop {
   public boolean isBufferedOperator(QueryContext queryContext) {
     // In case forced to use a single partition - do not consider this a buffered op (when memory is divided)
     return queryContext == null ||
-      1 < (int) queryContext.getOptions().getOption(ExecConstants.HASHJOIN_NUM_PARTITIONS_VALIDATOR);
+      1 < ExecOpt.HASH_JOIN_PARTITIONS_COUNT.intFrom(queryContext.getOptions());
   }
 
   public void setRuntimeFilterDef(RuntimeFilterDef runtimeFilterDef) {

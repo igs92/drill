@@ -24,6 +24,7 @@ import org.apache.drill.common.expression.PathSegment;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.OperatorContext;
 import org.apache.drill.exec.physical.base.LateralContract;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
@@ -34,6 +35,7 @@ import org.apache.drill.exec.record.RecordBatch;
 import org.apache.drill.exec.record.metadata.SchemaBuilder;
 import org.apache.drill.exec.record.metadata.TupleMetadata;
 import org.apache.drill.exec.record.VectorContainer;
+import org.apache.drill.exec.server.options.OptionManager;
 import org.apache.drill.exec.store.mock.MockStorePOP;
 import org.apache.drill.exec.vector.ValueVector;
 import org.apache.drill.exec.vector.VarCharVector;
@@ -326,16 +328,16 @@ import static org.junit.Assert.assertTrue;
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-        .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitedOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize =ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitedOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, data, baseline);
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
 
   }
@@ -387,16 +389,16 @@ import static org.junit.Assert.assertTrue;
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-        .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitedOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitedOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, 100, -1, data, baseline); // Limit of 100 values for unnest.
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
 
   }
@@ -444,16 +446,16 @@ import static org.junit.Assert.assertTrue;
 
     RecordBatch.IterOutcome[] iterOutcomes = {RecordBatch.IterOutcome.OK};
 
-    final long outputBatchSize = fixture.getFragmentContext().getOptions().getOption(ExecConstants
-        .OUTPUT_BATCH_SIZE_VALIDATOR);
-    fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, limitedOutputBatchSizeBytes);
+    OptionManager options = fixture.getFragmentContext().getOptions();
+    final long outputBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, limitedOutputBatchSizeBytes);
 
     try {
       testUnnest(incomingSchemas, iterOutcomes, 100, -1, data, baseline); // Limit of 100 values for unnest.
     } catch (Exception e) {
       fail("Failed due to exception: " + e.getMessage());
     } finally {
-      fixture.getFragmentContext().getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, outputBatchSize);
+      options.setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, outputBatchSize);
     }
 
   }

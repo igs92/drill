@@ -23,6 +23,7 @@ import org.apache.drill.categories.UnlikelyTest;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.record.metadata.PrimitiveColumnMetadata;
 import org.apache.drill.exec.record.metadata.SchemaBuilder;
 import org.apache.drill.exec.record.metadata.TupleMetadata;
@@ -79,7 +80,7 @@ public class TestInfoSchemaWithMetastore extends ClusterTest {
   @BeforeClass
   public static void setup() throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher);
-    builder.configProperty(ExecConstants.ZK_ROOT, root.getRoot().toString());
+    builder.configProperty(ExecOpt.ZK_ROOT.key, root.getRoot().toString());
     builder.sessionOption(ExecConstants.METASTORE_ENABLED, true);
     startCluster(builder);
     MetastoreRegistry metastoreRegistry = client.cluster().drillbit().getContext().getMetastoreRegistry();

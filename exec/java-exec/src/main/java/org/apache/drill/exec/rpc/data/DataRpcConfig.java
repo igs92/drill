@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.BitData;
 import org.apache.drill.exec.proto.BitData.RuntimeFilterBDef;
 import org.apache.drill.exec.proto.BitData.BitClientHandshake;
@@ -39,7 +40,7 @@ public class DataRpcConfig {
     return RpcConfig.newBuilder()
         .name("DATA")
         .executor(executor)
-        .timeout(config.getInt(ExecConstants.BIT_RPC_TIMEOUT))
+        .timeout(ExecOpt.BIT_RPC_TIMEOUT.intFrom(config))
         .add(RpcType.HANDSHAKE, BitClientHandshake.class, RpcType.HANDSHAKE, BitServerHandshake.class)
         .add(RpcType.REQ_RECORD_BATCH, FragmentRecordBatch.class, RpcType.DATA_ACK_WITH_CREDIT, BitData.AckWithCredit.class)
         .add(RpcType.SASL_MESSAGE, SaslMessage.class, RpcType.SASL_MESSAGE, SaslMessage.class)

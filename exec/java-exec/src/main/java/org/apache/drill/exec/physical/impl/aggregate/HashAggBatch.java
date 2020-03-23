@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.common.types.Types;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.expr.DrillFuncHolderExpr;
 import org.apache.drill.exec.planner.physical.AggPrelBase;
 import org.apache.drill.exec.record.VectorContainer;
@@ -203,7 +204,7 @@ public class HashAggBatch extends AbstractRecordBatch<HashAggregate> {
     logger.debug("Config: Is allocator lenient? {}", allowed);
 
     // get the output batch size from config.
-    int configuredBatchSize = (int) context.getOptions().getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
+    int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(context.getOptions());
 
     // If needed - reduce the size to allow enough batches in the available memory
     long memAvail = oContext.getAllocator().getLimit();

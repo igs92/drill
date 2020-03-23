@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.drill.categories.OperatorTest;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.ops.OperatorStats;
 import org.apache.drill.exec.physical.impl.xsort.SortMemoryManager.MergeAction;
@@ -72,15 +73,15 @@ public class TestExternalSortInternals extends SubOperatorTest {
     // Verify the various HOCON ways of setting memory
     OperatorFixture.Builder builder = new OperatorFixture.Builder(watcher);
     builder.configBuilder()
-        .put(ExecConstants.EXTERNAL_SORT_MAX_MEMORY, "2000K")
-        .put(ExecConstants.EXTERNAL_SORT_MERGE_LIMIT, 10)
-        .put(ExecConstants.EXTERNAL_SORT_SPILL_FILE_SIZE, "10M")
-        .put(ExecConstants.EXTERNAL_SORT_SPILL_BATCH_SIZE, 500_000)
-        .put(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 50)
-        .put(ExecConstants.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE, 10)
+        .put(ExecOpt.EXTERNAL_SORT_MAX_MEMORY.key, "2000K")
+        .put(ExecOpt.EXTERNAL_SORT_MERGE_LIMIT.key, 10)
+        .put(ExecOpt.EXTERNAL_SORT_SPILL_FILE_SIZE.key, "10M")
+        .put(ExecOpt.EXTERNAL_SORT_SPILL_BATCH_SIZE.key, 500_000)
+        .put(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 50)
+        .put(ExecOpt.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE.key, 10)
         .build();
     FragmentContext fragmentContext = builder.build().getFragmentContext();
-    fragmentContext.getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, 600_000);
+    fragmentContext.getOptions().setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, 600_000);
     SortConfig sortConfig = new SortConfig(fragmentContext.getConfig(), fragmentContext.getOptions());
     assertEquals(2000 * 1024, sortConfig.maxMemory());
     assertEquals(10, sortConfig.mergeLimit());
@@ -98,14 +99,14 @@ public class TestExternalSortInternals extends SubOperatorTest {
   public void testConfigLimits() {
     OperatorFixture.Builder builder = new OperatorFixture.Builder(watcher);
     builder.configBuilder()
-        .put(ExecConstants.EXTERNAL_SORT_MERGE_LIMIT, SortConfig.MIN_MERGE_LIMIT - 1)
-        .put(ExecConstants.EXTERNAL_SORT_SPILL_FILE_SIZE, SortConfig.MIN_SPILL_FILE_SIZE - 1)
-        .put(ExecConstants.EXTERNAL_SORT_SPILL_BATCH_SIZE, SortConfig.MIN_SPILL_BATCH_SIZE - 1)
-        .put(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 1)
-        .put(ExecConstants.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE, 0)
+        .put(ExecOpt.EXTERNAL_SORT_MERGE_LIMIT.key, SortConfig.MIN_MERGE_LIMIT - 1)
+        .put(ExecOpt.EXTERNAL_SORT_SPILL_FILE_SIZE.key, SortConfig.MIN_SPILL_FILE_SIZE - 1)
+        .put(ExecOpt.EXTERNAL_SORT_SPILL_BATCH_SIZE.key, SortConfig.MIN_SPILL_BATCH_SIZE - 1)
+        .put(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 1)
+        .put(ExecOpt.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE.key, 0)
         .build();
     FragmentContext fragmentContext = builder.build().getFragmentContext();
-    fragmentContext.getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, SortConfig.MIN_MERGE_BATCH_SIZE - 1);
+    fragmentContext.getOptions().setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, SortConfig.MIN_MERGE_BATCH_SIZE - 1);
     SortConfig sortConfig = new SortConfig(fragmentContext.getConfig(), fragmentContext.getOptions());
     assertEquals(SortConfig.MIN_MERGE_LIMIT, sortConfig.mergeLimit());
     assertEquals(SortConfig.MIN_SPILL_FILE_SIZE, sortConfig.spillFileSize());
@@ -420,11 +421,11 @@ public class TestExternalSortInternals extends SubOperatorTest {
 
     OperatorFixture.Builder builder = new OperatorFixture.Builder(watcher);
     builder.configBuilder()
-        .put(ExecConstants.EXTERNAL_SORT_MAX_MEMORY, memConstraint)
-        .put(ExecConstants.EXTERNAL_SORT_SPILL_BATCH_SIZE, batchSizeConstraint)
+        .put(ExecOpt.EXTERNAL_SORT_MAX_MEMORY.key, memConstraint)
+        .put(ExecOpt.EXTERNAL_SORT_SPILL_BATCH_SIZE.key, batchSizeConstraint)
         .build();
     FragmentContext fragmentContext = builder.build().getFragmentContext();
-    fragmentContext.getOptions().setLocalOption(ExecConstants.OUTPUT_BATCH_SIZE, mergeSizeConstraint);
+    fragmentContext.getOptions().setLocalOption(ExecOpt.OUTPUT_BATCH_SIZE.key, mergeSizeConstraint);
     SortConfig sortConfig = new SortConfig(fragmentContext.getConfig(), fragmentContext.getOptions());
     long memoryLimit = 50 * ONE_MEG;
     SortMemoryManager memManager = new SortMemoryManager(sortConfig, memoryLimit);
@@ -476,7 +477,7 @@ public class TestExternalSortInternals extends SubOperatorTest {
     int mergeLimitConstraint = 100;
     OperatorFixture.Builder builder = new OperatorFixture.Builder(watcher);
     builder.configBuilder()
-        .put(ExecConstants.EXTERNAL_SORT_MERGE_LIMIT, mergeLimitConstraint)
+        .put(ExecOpt.EXTERNAL_SORT_MERGE_LIMIT.key, mergeLimitConstraint)
         .build();
     FragmentContext fragmentContext = builder.build().getFragmentContext();
     SortConfig sortConfig = new SortConfig(fragmentContext.getConfig(), fragmentContext.getOptions());
@@ -605,7 +606,7 @@ public class TestExternalSortInternals extends SubOperatorTest {
     int mergeLimitConstraint = 5;
     OperatorFixture.Builder builder = new OperatorFixture.Builder(watcher);
     builder.configBuilder()
-        .put(ExecConstants.EXTERNAL_SORT_MERGE_LIMIT, mergeLimitConstraint)
+        .put(ExecOpt.EXTERNAL_SORT_MERGE_LIMIT.key, mergeLimitConstraint)
         .build();
     FragmentContext fragmentContext = builder.build().getFragmentContext();
     SortConfig sortConfig = new SortConfig(fragmentContext.getConfig(), fragmentContext.getOptions());

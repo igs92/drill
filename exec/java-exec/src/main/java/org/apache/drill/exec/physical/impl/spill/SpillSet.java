@@ -34,6 +34,7 @@ import java.util.Set;
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.exceptions.UserException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.cache.VectorSerializer;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
@@ -428,21 +429,21 @@ public class SpillSet {
     // common options; users may override those - per operator)
     if (popConfig instanceof Sort) {
         operName = "Sort";
-        spillFs = config.getString(ExecConstants.EXTERNAL_SORT_SPILL_FILESYSTEM);
-        dirList = config.getStringList(ExecConstants.EXTERNAL_SORT_SPILL_DIRS);
+        spillFs = ExecOpt.EXTERNAL_SORT_SPILL_FS.stringFrom(config);
+        dirList = ExecOpt.EXTERNAL_SORT_SPILL_DIRS.stringListFrom(config);
     } else if (popConfig instanceof HashAggregate) {
         operName = "HashAgg";
         spillFs = config.getString(ExecConstants.HASHAGG_SPILL_FILESYSTEM);
         dirList = config.getStringList(ExecConstants.HASHAGG_SPILL_DIRS);
     } else if (popConfig instanceof HashJoinPOP) {
       operName = "HashJoin";
-      spillFs = config.getString(ExecConstants.HASHJOIN_SPILL_FILESYSTEM);
-      dirList = config.getStringList(ExecConstants.HASHJOIN_SPILL_DIRS);
+      spillFs = ExecOpt.HASH_JOIN_SPILL_FS.stringFrom(config);
+      dirList = ExecOpt.HASH_JOIN_SPILL_DIRS.stringListFrom(config);
     } else {
         // just use the common ones
         operName = "Unknown";
-        spillFs = config.getString(ExecConstants.SPILL_FILESYSTEM);
-        dirList = config.getStringList(ExecConstants.SPILL_DIRS);
+        spillFs = ExecOpt.SPILL_FS.stringFrom(config);
+        dirList = ExecOpt.SPILL_DIRS.stringListFrom(config);
     }
 
     dirs = Iterators.cycle(dirList);

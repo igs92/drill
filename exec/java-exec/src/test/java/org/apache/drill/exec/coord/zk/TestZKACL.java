@@ -29,6 +29,7 @@ import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.scanner.ClassPathScanner;
 import org.apache.drill.common.scanner.persistence.ScanResult;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.server.BootStrapContext;
 import org.apache.drill.exec.server.options.SystemOptionManager;
 import org.apache.drill.test.BaseTest;
@@ -69,9 +70,9 @@ public class TestZKACL extends BaseTest {
     server = new TestingServer();
 
 
-    final DrillConfig config = new DrillConfig(DrillConfig.create().withValue(ExecConstants.ZK_ACL_PROVIDER,
-            ConfigValueFactory.fromAnyRef("creator-all")
-    ).withValue(ExecConstants.ZK_APPLY_SECURE_ACL, ConfigValueFactory.fromAnyRef(true)));
+    final DrillConfig config = new DrillConfig(DrillConfig.create()
+        .withValue(ExecOpt.ZK_ACL_PROVIDER.key, ConfigValueFactory.fromAnyRef("creator-all")
+    ).withValue(ExecOpt.ZK_APPLY_SECURE_ACL.key, ConfigValueFactory.fromAnyRef(true)));
 
     final ScanResult result = ClassPathScanner.fromPrescan(config);
     final BootStrapContext bootStrapContext =

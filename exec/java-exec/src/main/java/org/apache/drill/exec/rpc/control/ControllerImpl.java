@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.drill.common.AutoCloseables;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.DrillbitStartupException;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
@@ -56,7 +57,7 @@ public class ControllerImpl implements Controller {
   @Override
   public DrillbitEndpoint start(DrillbitEndpoint partialEndpoint, final boolean allowPortHunting) {
     server = new ControlServer(config, connectionRegistry);
-    int port = config.getBootstrapContext().getConfig().getInt(ExecConstants.INITIAL_BIT_PORT);
+    int port = ExecOpt.BIT_PORT.intFrom(config.getBootstrapContext().getConfig());
     port = server.bind(port, allowPortHunting);
     DrillbitEndpoint completeEndpoint = partialEndpoint.toBuilder().setControlPort(port).build();
     connectionRegistry.setLocalEndpoint(completeEndpoint);

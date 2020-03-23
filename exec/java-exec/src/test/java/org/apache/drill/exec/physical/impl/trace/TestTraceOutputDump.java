@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.drill.categories.OperatorTest;
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.common.util.DrillFileUtils;
-import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ExecTest;
 import org.apache.drill.exec.cache.VectorAccessibleSerializable;
 import org.apache.drill.exec.expr.fn.FunctionImplementationRegistry;
@@ -99,11 +99,11 @@ public class TestTraceOutputDump extends ExecTest {
     final int majorFragmentId = handle.getMajorFragmentId();
     final int minorFragmentId = handle.getMinorFragmentId();
 
-    final String logLocation = c.getString(ExecConstants.TRACE_DUMP_DIRECTORY);
+    final String logLocation = ExecOpt.TRACE_DUMP_DIR.stringFrom(c);
 
     final String filename = String.format("%s//%s_%d_%d_mock-scan", logLocation, qid, majorFragmentId, minorFragmentId);
     final Configuration conf = new Configuration();
-    conf.set(FileSystem.FS_DEFAULT_NAME_KEY, c.getString(ExecConstants.TRACE_DUMP_FILESYSTEM));
+    conf.set(FileSystem.FS_DEFAULT_NAME_KEY, ExecOpt.TRACE_DUMP_FS.stringFrom(c));
 
     final FileSystem fs = FileSystem.get(conf);
     final Path path = new Path(filename);

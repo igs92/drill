@@ -41,6 +41,7 @@ import org.apache.drill.common.config.DrillProperties;
 import org.apache.drill.common.logical.FormatPluginConfig;
 import org.apache.drill.common.logical.StoragePluginConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ZookeeperHelper;
 import org.apache.drill.exec.client.DrillClient;
 import org.apache.drill.exec.memory.BufferAllocator;
@@ -97,12 +98,12 @@ public class ClusterFixture extends BaseFixture implements AutoCloseable {
       // See Drillbit.close. The Drillbit normally waits a specified amount
       // of time for ZK registration to drop. But, embedded Drillbits normally
       // don't use ZK, so no need to wait.
-      put(ExecConstants.ZK_REFRESH, 0);
+      put(ExecOpt.ZK_REFRESH.key, 0);
 
       // This is just a test, no need to be heavy-duty on threads.
       // This is the number of server and client RPC threads. The
       // production default is DEFAULT_SERVER_RPC_THREADS.
-      put(ExecConstants.BIT_SERVER_RPC_THREADS, 2);
+      put(ExecOpt.BIT_SERVER_RPC_THREADS.key, 2);
 
       // No need for many scanners except when explicitly testing that
       // behavior. Production default is DEFAULT_SCAN_THREADS
@@ -185,7 +186,7 @@ public class ClusterFixture extends BaseFixture implements AutoCloseable {
       if (builder.configBuilder().hasResource()) {
         throw new IllegalArgumentException("Cannot specify a local ZK while using an external config file.");
       }
-      builder.configProperty(ExecConstants.ZK_CONNECTION, zkConnect);
+      builder.configProperty(ExecOpt.ZK_CONNECTION.key, zkConnect);
 
       // Forced to disable this, because currently we leak memory which is a known issue for query cancellations.
       // Setting this causes unit tests to fail.

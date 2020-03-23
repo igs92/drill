@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.test.BaseTestQuery;
 import org.apache.drill.test.DrillTestWrapper;
 import org.apache.drill.categories.UnlikelyTest;
@@ -41,7 +42,7 @@ public class TestWindowFrame extends BaseTestQuery {
   public static void setupMSortBatchSize() throws IOException {
     // make sure memory sorter outputs 20 rows per batch
     final Properties props = cloneDefaultTestConfigProperties();
-    props.put(ExecConstants.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE, Integer.toString(20));
+    props.put(ExecOpt.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE.key, Integer.toString(20));
 
     updateTestCluster(1, DrillConfig.create(props));
     dirTestWatcher.copyResourceToRoot(Paths.get("window"));

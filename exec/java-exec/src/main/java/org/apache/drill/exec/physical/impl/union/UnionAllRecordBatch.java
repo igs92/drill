@@ -33,6 +33,7 @@ import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.common.types.TypeProtos.MajorType;
 import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.OutOfMemoryException;
 import org.apache.drill.exec.exception.SchemaChangeException;
 import org.apache.drill.exec.expr.ClassGenerator;
@@ -77,7 +78,7 @@ public class UnionAllRecordBatch extends AbstractBinaryRecordBatch<UnionAll> {
     super(config, context, true, children.get(0), children.get(1));
 
     // get the output batch size from config.
-    int configuredBatchSize = (int) context.getOptions().getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
+    int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(context.getOptions());
     batchMemoryManager = new RecordBatchMemoryManager(numInputs, configuredBatchSize);
 
     RecordBatchStats.printConfiguredBatchSize(getRecordBatchStatsContext(),

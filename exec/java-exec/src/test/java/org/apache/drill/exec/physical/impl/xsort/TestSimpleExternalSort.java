@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.drill.common.expression.ExpressionPosition;
 import org.apache.drill.common.expression.SchemaPath;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.test.TestTools;
 import org.apache.drill.exec.ExecConstants;
 import org.apache.drill.exec.exception.SchemaChangeException;
@@ -107,9 +108,7 @@ public class TestSimpleExternalSort extends DrillTest {
   @Test
   public void sortOneKeyDescendingExternalSort() throws Throwable {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher)
-        .configProperty(ExecConstants.EXTERNAL_SORT_SPILL_THRESHOLD, 4)
-        .configProperty(ExecConstants.EXTERNAL_SORT_SPILL_GROUP_SIZE, 4)
-        .configProperty(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 4);
+        .configProperty(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 4);
     try (ClusterFixture cluster = builder.build();
          ClientFixture client = cluster.clientFixture()) {
       List<QueryDataBatch> results = client.queryBuilder().physicalResource("/xsort/one_key_sort_descending.json").results();

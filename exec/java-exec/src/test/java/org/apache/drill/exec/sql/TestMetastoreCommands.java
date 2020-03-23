@@ -24,6 +24,7 @@ import org.apache.drill.common.exceptions.UserRemoteException;
 import org.apache.drill.common.expression.SchemaPath;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.metastore.analyze.AnalyzeParquetInfoProvider;
 import org.apache.drill.exec.planner.physical.PlannerSettings;
 import org.apache.drill.exec.record.metadata.SchemaBuilder;
@@ -188,7 +189,7 @@ public class TestMetastoreCommands extends ClusterTest {
   @BeforeClass
   public static void setUp() throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher);
-    builder.configProperty(ExecConstants.ZK_ROOT, dirTestWatcher.getRootDir().getPath());
+    builder.configProperty(ExecOpt.ZK_ROOT.key, dirTestWatcher.getRootDir().getPath());
     startCluster(builder);
 
     dirTestWatcher.copyResourceToRoot(Paths.get("multilevel/parquet"));

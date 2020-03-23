@@ -19,6 +19,7 @@ package org.apache.drill.exec.physical.impl.xsort;
 
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.server.options.OptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,13 +79,13 @@ public class SortConfig {
   public SortConfig(DrillConfig config, OptionManager options) {
     // Optional configured memory limit, typically used only for testing.
 
-    maxMemory = config.getBytes(ExecConstants.EXTERNAL_SORT_MAX_MEMORY);
+    maxMemory = ExecOpt.EXTERNAL_SORT_MAX_MEMORY.bytesFrom(config);
 
     // Optional limit on the number of spilled runs to merge in a single
     // pass. Limits the number of open file handles. Must allow at least
     // two batches to merge to make progress.
 
-    int limit = config.getInt(ExecConstants.EXTERNAL_SORT_MERGE_LIMIT);
+    int limit = ExecOpt.EXTERNAL_SORT_MERGE_LIMIT.intFrom(config);
     if (limit > 0) {
       mergeLimit = Math.max(limit, MIN_MERGE_LIMIT);
     } else {
@@ -94,8 +95,8 @@ public class SortConfig {
     // Limits the size of first-generation spill files.
     // Ensure the size is reasonable.
 
-    spillFileSize = Math.max(config.getBytes(ExecConstants.EXTERNAL_SORT_SPILL_FILE_SIZE), MIN_SPILL_FILE_SIZE);
-    spillBatchSize = (int) Math.max(config.getBytes(ExecConstants.EXTERNAL_SORT_SPILL_BATCH_SIZE), MIN_SPILL_BATCH_SIZE);
+    spillFileSize = Math.max(ExecOpt.EXTERNAL_SORT_SPILL_FILE_SIZE.bytesFrom(config), MIN_SPILL_FILE_SIZE);
+    spillBatchSize = (int) Math.max(ExecOpt.EXTERNAL_SORT_SPILL_BATCH_SIZE.bytesFrom(config), MIN_SPILL_BATCH_SIZE);
 
     // Set the target output batch size. Use the maximum size, but only if
     // this represents less than 10% of available memory. Otherwise, use 10%
@@ -108,11 +109,11 @@ public class SortConfig {
     // Don't change defaults unless you know what you are doing,
     // larger sizes can result in memory fragmentation, smaller sizes
     // in excessive operator iterator overhead.
-    mergeBatchSize = (int) Math.max(options.getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR), MIN_MERGE_BATCH_SIZE);
+    mergeBatchSize = Math.max(ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options), MIN_MERGE_BATCH_SIZE);
 
     // Limit on in-memory batches, primarily for testing.
 
-    int value = config.getInt(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT);
+    int value = ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.intFrom(config);
     if (value == 0) {
       bufferedBatchLimit = Integer.MAX_VALUE;
     } else {
@@ -121,10 +122,10 @@ public class SortConfig {
 
     // Limit on memory merge batch size; primarily for testing
 
-    if (config.hasPath(ExecConstants.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE)) {
+    if (ExecOpt.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE.isIn(config)) {
       mSortBatchSize = Math.max(1,
-            Math.min(Character.MAX_VALUE,
-                     config.getInt(ExecConstants.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE)));
+          Math.min(Character.MAX_VALUE,
+              ExecOpt.EXTERNAL_SORT_MSORT_MAX_BATCHSIZE.intFrom(config)));
     } else {
       mSortBatchSize = Character.MAX_VALUE;
     }

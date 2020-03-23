@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.drill.common.exceptions.DrillRuntimeException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.FragmentContext;
 import org.apache.drill.exec.record.RawFragmentBatch;
 
@@ -56,7 +57,7 @@ public abstract class BaseRawBatchBuffer<T> implements RawBatchBuffer {
   protected final boolean enableDynamicFC;
 
   public BaseRawBatchBuffer(final FragmentContext context, final int fragmentCount, final boolean enableDynamicFC) {
-    bufferSizePerSocket = context.getConfig().getInt(ExecConstants.INCOMING_BUFFER_SIZE);
+    bufferSizePerSocket = ExecOpt.INCOMING_BUFFER_SIZE.intFrom(context.getConfig());
 
     this.fragmentCount = fragmentCount;
     this.streamCounter = fragmentCount;

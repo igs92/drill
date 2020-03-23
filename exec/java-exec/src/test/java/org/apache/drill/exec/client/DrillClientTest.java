@@ -20,6 +20,7 @@ package org.apache.drill.exec.client;
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.DrillSystemTestBase;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.CoordinationProtos;
 import org.junit.Test;
 import java.util.List;
@@ -42,12 +43,15 @@ public class DrillClientTest extends DrillSystemTestBase {
 
     // Test with single drillbit ip
     final String drillBitConnection = "10.10.100.161";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     final CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpointsList.size(), 1);
     assertEquals(endpoint.getAddress(), drillBitConnection);
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
+  }
+
+  private List<CoordinationProtos.DrillbitEndpoint> getEndpointsList(String drillBitConnection) throws InvalidConnectionInfoException {
+    return DrillClient.parseAndVerifyEndpoints(drillBitConnection, ExecOpt.USER_PORT.stringFrom(config));
   }
 
   @Test
@@ -56,8 +60,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     // Test with single drillbit ip:port
     final String drillBitConnection = "10.10.100.161:5000";
     final String[] ipAndPort = drillBitConnection.split(":");
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     assertEquals(endpointsList.size(), 1);
 
     final CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
@@ -70,17 +73,16 @@ public class DrillClientTest extends DrillSystemTestBase {
 
     // Test with multiple drillbit ip
     final String drillBitConnection = "10.10.100.161,10.10.100.162";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     assertEquals(endpointsList.size(), 2);
 
     CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpoint.getAddress(), "10.10.100.161");
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
 
     endpoint = endpointsList.get(1);
     assertEquals(endpoint.getAddress(), "10.10.100.162");
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
   }
 
   @Test
@@ -88,8 +90,7 @@ public class DrillClientTest extends DrillSystemTestBase {
 
     // Test with multiple drillbit ip:port
     final String drillBitConnection = "10.10.100.161:5000,10.10.100.162:5000";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     assertEquals(endpointsList.size(), 2);
 
     CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
@@ -106,8 +107,7 @@ public class DrillClientTest extends DrillSystemTestBase {
 
     // Test with multiple drillbit with mix of ip:port and ip
     final String drillBitConnection = "10.10.100.161:5000,10.10.100.162";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     assertEquals(endpointsList.size(), 2);
 
     CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
@@ -116,7 +116,7 @@ public class DrillClientTest extends DrillSystemTestBase {
 
     endpoint = endpointsList.get(1);
     assertEquals(endpoint.getAddress(), "10.10.100.162");
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
   }
 
   @Test
@@ -125,8 +125,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     // Test with empty string
     final String drillBitConnection = "";
     try {
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);
@@ -139,8 +138,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     final String drillBitConnection = ":";
 
     try {
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);
@@ -153,8 +151,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     final String drillBitConnection = ":5000";
 
     try {
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);
@@ -167,8 +164,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     final String drillBitConnection = "10.10.100.161:5000:6000";
 
     try {
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);
@@ -179,32 +175,29 @@ public class DrillClientTest extends DrillSystemTestBase {
   public void testParseAndVerifyEndpointsIpWithDelim() throws Exception{
     // Test to check when connection string has ip with delimiter
     final String drillBitConnection = "10.10.100.161:";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     final CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpointsList.size(), 1);
     assertEquals(endpoint.getAddress(), "10.10.100.161");
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
   }
 
   @Test
   public void testParseAndVerifyEndpointsIpWithEmptyPort() throws Exception{
     // Test to check when connection string has ip with delimiter
     final String drillBitConnection = "10.10.100.161:    ";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     final CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpointsList.size(), 1);
     assertEquals(endpoint.getAddress(), "10.10.100.161");
-    assertEquals(endpoint.getUserPort(), config.getInt(ExecConstants.INITIAL_USER_PORT));
+    assertEquals(endpoint.getUserPort(), ExecOpt.USER_PORT.intFrom(config));
   }
 
   @Test
   public void testParseAndVerifyEndpointsIpWithSpaces() throws Exception{
     // Test to check when connection string has spaces in between
     final String drillBitConnection = "10.10.100.161 : 5000, 10.10.100.162:6000    ";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
 
     CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpointsList.size(), 2);
@@ -220,8 +213,7 @@ public class DrillClientTest extends DrillSystemTestBase {
   public void testParseAndVerifyEndpointsStringWithSpaces() throws Exception{
     // Test to check when connection string has ip with delimiter
     final String drillBitConnection = "10.10.100.161 : 5000";
-    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-      (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+    final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
     final CoordinationProtos.DrillbitEndpoint endpoint = endpointsList.get(0);
     assertEquals(endpointsList.size(), 1);
     assertEquals(endpoint.getAddress(), "10.10.100.161");
@@ -234,8 +226,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     final String drillBitConnection = "10.10.100.161:5ab0";
 
     try{
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);
@@ -248,8 +239,7 @@ public class DrillClientTest extends DrillSystemTestBase {
     final String drillBitConnection = "  ,   ";
 
     try{
-      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = DrillClient.parseAndVerifyEndpoints
-        (drillBitConnection, config.getString(ExecConstants.INITIAL_USER_PORT));
+      final List<CoordinationProtos.DrillbitEndpoint> endpointsList = getEndpointsList(drillBitConnection);
       fail();
     } catch (InvalidConnectionInfoException e) {
       logger.error("Exception ", e);

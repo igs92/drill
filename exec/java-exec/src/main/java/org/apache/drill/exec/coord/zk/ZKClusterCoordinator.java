@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.curator.framework.imps.DefaultACLProvider;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.base.Throwables;
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.curator.RetryPolicy;
@@ -88,9 +89,11 @@ public class ZKClusterCoordinator extends ClusterCoordinator {
 
   public ZKClusterCoordinator(DrillConfig config, String connect, ACLProvider aclProvider) {
 
-    connect = connect == null || connect.isEmpty() ? config.getString(ExecConstants.ZK_CONNECTION) : connect;
-    String clusterId = config.getString(ExecConstants.SERVICE_NAME);
-    String zkRoot = config.getString(ExecConstants.ZK_ROOT);
+    connect = (connect == null || connect.isEmpty())
+        ? ExecOpt.ZK_CONNECTION.stringFrom(config)
+        : connect;
+    String clusterId = ExecOpt.SERVICE_NAME.stringFrom(config);
+    String zkRoot = ExecOpt.ZK_ROOT.stringFrom(config);
 
     // check if this is a complex zk string.  If so, parse into components.
     Matcher m = ZK_COMPLEX_STRING.matcher(connect);
@@ -104,11 +107,12 @@ public class ZKClusterCoordinator extends ClusterCoordinator {
 
     this.serviceName = clusterId;
 
-    RetryPolicy rp = new RetryNTimes(config.getInt(ExecConstants.ZK_RETRY_TIMES),
-      config.getInt(ExecConstants.ZK_RETRY_DELAY));
+    RetryPolicy rp = new RetryNTimes(
+        ExecOpt.ZK_RETRY_TIMES.intFrom(config),
+        ExecOpt.ZK_RETRY_DELAY.intFrom(config));
     curator = CuratorFrameworkFactory.builder()
       .namespace(zkRoot)
-      .connectionTimeoutMs(config.getInt(ExecConstants.ZK_TIMEOUT))
+      .connectionTimeoutMs(ExecOpt.ZK_TIMEOUT.intFrom(config))
       .retryPolicy(rp)
       .connectString(connect)
       .aclProvider(aclProvider)

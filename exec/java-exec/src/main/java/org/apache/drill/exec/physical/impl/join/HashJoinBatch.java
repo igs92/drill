@@ -48,6 +48,7 @@ import org.apache.drill.common.types.TypeProtos.DataMode;
 import org.apache.drill.common.types.TypeProtos.MajorType;
 import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.OutOfMemoryException;
 import org.apache.drill.exec.exception.SchemaChangeException;
 import org.apache.drill.exec.expr.ExpressionTreeMaterializer;
@@ -79,6 +80,7 @@ import org.apache.drill.exec.record.TypedFieldId;
 import org.apache.drill.exec.record.VectorAccessibleUtilities;
 import org.apache.drill.exec.record.VectorContainer;
 import org.apache.drill.exec.record.VectorWrapper;
+import org.apache.drill.exec.server.options.OptionManager;
 import org.apache.drill.exec.util.record.RecordBatchStats;
 import org.apache.drill.exec.util.record.RecordBatchStats.RecordBatchIOType;
 import org.apache.drill.exec.vector.IntVector;
@@ -517,14 +519,11 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
    */
   public HashJoinMemoryCalculator getCalculatorImpl() {
     if (maxBatchesInMemory == 0) {
-      double safetyFactor = context.getOptions()
-          .getDouble(ExecConstants.HASHJOIN_SAFETY_FACTOR_KEY);
-      double fragmentationFactor = context.getOptions()
-          .getDouble(ExecConstants.HASHJOIN_FRAGMENTATION_FACTOR_KEY);
-      double hashTableDoublingFactor = context.getOptions()
-          .getDouble(ExecConstants.HASHJOIN_HASH_DOUBLE_FACTOR_KEY);
-      String hashTableCalculatorType = context.getOptions()
-          .getString(ExecConstants.HASHJOIN_HASHTABLE_CALC_TYPE_KEY);
+      OptionManager options = context.getOptions();
+      double safetyFactor = ExecOpt.HASH_JOIN_SAFETY_FACTOR.doubleFrom(options);
+      double fragmentationFactor = ExecOpt.HASH_JOIN_FRAGMENTATION_FACTOR.doubleFrom(options);
+      double hashTableDoublingFactor = ExecOpt.HASH_JOIN_HASH_DOUBLE_FACTOR.doubleFrom(options);
+      String hashTableCalculatorType = ExecOpt.HASH_JOIN_HASHTABLE_CALC_TYPE.stringFrom(options);
 
       return new HashJoinMemoryCalculatorImpl(safetyFactor, fragmentationFactor,
           hashTableDoublingFactor, hashTableCalculatorType, semiJoin);
@@ -983,8 +982,8 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
     // Fail, or just issue a warning if a reason was given, or a fallback option
     // is enabled
     if (reason == null) {
-      boolean fallbackEnabled = context.getOptions()
-          .getBoolean(ExecConstants.HASHJOIN_FALLBACK_ENABLED_KEY);
+      boolean fallbackEnabled = ExecOpt.HASH_JOIN_FALLBACK_ENABLED
+          .booleanFrom(context.getOptions());
       if (fallbackEnabled) {
         logger.warn(
             "Spilling is disabled - not enough memory available for internal partitioning. Falling back"
@@ -995,7 +994,7 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
                 + "HashJoin to use unbounded memory is disabled.\n" +
                 "Either enable fallback option %s using ALTER "
                 + "SESSION/SYSTEM command or increase the memory limit for the Drillbit",
-            ExecConstants.HASHJOIN_FALLBACK_ENABLED_KEY)).build(logger);
+            ExecOpt.HASH_JOIN_FALLBACK_ENABLED.key)).build(logger);
       }
     } else {
       logger.warn(reason);
@@ -1340,8 +1339,8 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
 
     this.allocator = oContext.getAllocator();
 
-    numPartitions = (int) context.getOptions()
-        .getOption(ExecConstants.HASHJOIN_NUM_PARTITIONS_VALIDATOR);
+    OptionManager options = context.getOptions();
+    numPartitions = ExecOpt.HASH_JOIN_PARTITIONS_COUNT.intFrom(options);
     if (numPartitions == 1) { //
       disableSpilling(
           "Spilling is disabled due to configuration setting of num_partitions to 1");
@@ -1350,17 +1349,14 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
     numPartitions = BaseAllocator.nextPowerOfTwo(numPartitions); // in case not
                                                                  // a power of 2
 
-    long memLimit = context.getOptions()
-        .getOption(ExecConstants.HASHJOIN_MAX_MEMORY_VALIDATOR);
+    long memLimit = ExecOpt.HASH_JOIN_MAX_MEMORY.longFrom(options);
 
     if (memLimit != 0) {
       allocator.setLimit(memLimit);
     }
 
-    RECORDS_PER_BATCH = (int) context.getOptions()
-        .getOption(ExecConstants.HASHJOIN_NUM_ROWS_IN_BATCH_VALIDATOR);
-    maxBatchesInMemory = (int) context.getOptions()
-        .getOption(ExecConstants.HASHJOIN_MAX_BATCHES_IN_MEMORY_VALIDATOR);
+    RECORDS_PER_BATCH = ExecOpt.HASH_JOIN_ROWS_IN_BATCH.intFrom(options);
+    maxBatchesInMemory = ExecOpt.HASH_JOIN_MAX_BATCHES_IN_MEMORY.intFrom(options);
 
     logger.info("Memory limit {} bytes",
         FileUtils.byteCountToDisplaySize(allocator.getLimit()));
@@ -1371,10 +1367,8 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
     partitions = new HashPartition[0];
 
     // get the output batch size from config.
-    int configuredBatchSize = (int) context.getOptions()
-        .getOption(ExecConstants.OUTPUT_BATCH_SIZE_VALIDATOR);
-    double avail_mem_factor = context.getOptions()
-        .getOption(ExecConstants.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR_VALIDATOR);
+    int configuredBatchSize = ExecOpt.OUTPUT_BATCH_SIZE.intFrom(options);
+    double avail_mem_factor = ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR.doubleFrom(options);
     int outputBatchSize = Math.min(configuredBatchSize,
         Integer.highestOneBit((int) (allocator.getLimit() * avail_mem_factor)));
 
@@ -1389,8 +1383,7 @@ public class HashJoinBatch extends AbstractBinaryRecordBatch<HashJoinPOP>
     RecordBatchStats.printConfiguredBatchSize(getRecordBatchStatsContext(),
         configuredBatchSize);
 
-    enableRuntimeFilter = context.getOptions()
-        .getOption(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER)
+    enableRuntimeFilter = ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.booleanFrom(options)
         && popConfig.getRuntimeFilterDef() != null;
   }
 

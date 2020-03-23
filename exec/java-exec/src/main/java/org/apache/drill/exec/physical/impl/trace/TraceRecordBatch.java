@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.apache.drill.common.exceptions.ExecutionSetupException;
-import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.cache.VectorAccessibleSerializable;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.ops.FragmentContext;
@@ -73,7 +73,7 @@ public class TraceRecordBatch extends AbstractSingleRecordBatch<Trace> {
   public TraceRecordBatch(Trace pop, RecordBatch incoming, FragmentContext context) throws ExecutionSetupException {
     super(pop, context, incoming);
     this.traceTag = pop.traceTag;
-    logLocation = context.getConfig().getString(ExecConstants.TRACE_DUMP_DIRECTORY);
+    logLocation = ExecOpt.TRACE_DUMP_DIR.stringFrom(context.getConfig());
     localAllocator = context.getNewChildAllocator("trace", 200, 0, Long.MAX_VALUE);
     String fileName = getFileName();
 
@@ -81,7 +81,7 @@ public class TraceRecordBatch extends AbstractSingleRecordBatch<Trace> {
     try {
       Configuration conf = new Configuration();
       conf.set(FileSystem.FS_DEFAULT_NAME_KEY,
-          context.getConfig().getString(ExecConstants.TRACE_DUMP_FILESYSTEM));
+          ExecOpt.TRACE_DUMP_FS.stringFrom(context.getConfig()));
       FileSystem fs = FileSystem.get(conf);
 
       // create the file

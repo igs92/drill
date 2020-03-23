@@ -20,7 +20,9 @@ package org.apache.drill.exec.rpc.data;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.drill.common.AutoCloseables;
+import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.exception.DrillbitStartupException;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.proto.CoordinationProtos.DrillbitEndpoint;
@@ -52,8 +54,9 @@ public class DataConnectionCreator implements AutoCloseable {
   public DrillbitEndpoint start(DrillbitEndpoint partialEndpoint, boolean allowPortHunting) {
     server = new DataServer(config);
     int port = partialEndpoint.getControlPort() + 1;
-    if (config.getBootstrapContext().getConfig().hasPath(ExecConstants.INITIAL_DATA_PORT)) {
-      port = config.getBootstrapContext().getConfig().getInt(ExecConstants.INITIAL_DATA_PORT);
+    DrillConfig config = this.config.getBootstrapContext().getConfig();
+    if (ExecOpt.BIT_DATA_PORT.isIn(config)) {
+      port = ExecOpt.BIT_DATA_PORT.intFrom(config);
     }
     port = server.bind(port, allowPortHunting);
     return partialEndpoint.toBuilder().setDataPort(port).build();

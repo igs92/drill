@@ -34,6 +34,7 @@ import org.apache.drill.exec.ExecConstants;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import org.apache.drill.exec.ExecOpt;
 
 /**
  * Configuration used within the Drill-on-YARN code. Configuration comes from four
@@ -69,7 +70,7 @@ public class DrillOnYarnConfig {
   public static final String CLIENT_PARENT = append(DRILL_ON_YARN_PARENT, "client");
 
   public static final String APP_NAME = append(DRILL_ON_YARN_PARENT, "app-name");
-  public static final String CLUSTER_ID = ExecConstants.SERVICE_NAME;
+  public static final String CLUSTER_ID = ExecOpt.SERVICE_NAME.key;
 
   public static final String DFS_CONNECTION = append(DFS_PARENT, "connection");
   public static final String DFS_APP_DIR = append(DFS_PARENT, "app-dir");
@@ -130,17 +131,17 @@ public class DrillOnYarnConfig {
   public static final String DRILLBIT_DEBUG_LAUNCH = append(DOY_DRILLBIT_PARENT, "debug-launch");
   public static final String DRILLBIT_HTTP_PORT = ExecConstants.HTTP_PORT;
   public static final String DISABLE_YARN_LOGS = append(DOY_DRILLBIT_PARENT, "disable-yarn-logs");
-  public static final String DRILLBIT_USER_PORT = ExecConstants.INITIAL_USER_PORT;
-  public static final String DRILLBIT_BIT_PORT = ExecConstants.INITIAL_BIT_PORT;
+  public static final String DRILLBIT_USER_PORT = ExecOpt.USER_PORT.key;
+  public static final String DRILLBIT_BIT_PORT = ExecOpt.BIT_PORT.key;
   public static final String DRILLBIT_USE_HTTPS = ExecConstants.HTTP_ENABLE_SSL;
   public static final String DRILLBIT_MAX_EXTRA_NODES = append(DOY_DRILLBIT_PARENT, "max-extra-nodes");
   public static final String DRILLBIT_REQUEST_TIMEOUT_SEC = append(DOY_DRILLBIT_PARENT, "request-timeout-secs");
 
-  public static final String ZK_CONNECT = ExecConstants.ZK_CONNECTION;
-  public static final String ZK_ROOT = ExecConstants.ZK_ROOT;
-  public static final String ZK_FAILURE_TIMEOUT_MS = ExecConstants.ZK_TIMEOUT;
-  public static final String ZK_RETRY_COUNT = ExecConstants.ZK_RETRY_TIMES;
-  public static final String ZK_RETRY_DELAY_MS = ExecConstants.ZK_RETRY_DELAY;
+  public static final String ZK_CONNECT = ExecOpt.ZK_CONNECTION.key;
+  public static final String ZK_ROOT = ExecOpt.ZK_ROOT.key;
+  public static final String ZK_FAILURE_TIMEOUT_MS = ExecOpt.ZK_TIMEOUT.key;
+  public static final String ZK_RETRY_COUNT = ExecOpt.ZK_RETRY_TIMES.key;
+  public static final String ZK_RETRY_DELAY_MS = ExecOpt.ZK_RETRY_DELAY.key;
 
   // Names selected to be parallel to Drillbit HTTP config.
 

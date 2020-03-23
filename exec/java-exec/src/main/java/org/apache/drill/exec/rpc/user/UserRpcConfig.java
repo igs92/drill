@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 
 import org.apache.drill.common.config.DrillConfig;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.proto.GeneralRPCProtos.Ack;
 import org.apache.drill.exec.proto.UserBitShared.QueryData;
 import org.apache.drill.exec.proto.UserBitShared.QueryId;
@@ -56,7 +57,7 @@ public class UserRpcConfig {
   public static RpcConfig getMapping(DrillConfig config, Executor executor) {
     return RpcConfig.newBuilder()
         .name("USER")
-        .timeout(config.getInt(ExecConstants.USER_RPC_TIMEOUT))
+        .timeout(ExecOpt.USER_TIMEOUT.intFrom(config))
         .executor(executor)
         .add(RpcType.HANDSHAKE, UserToBitHandshake.class, RpcType.HANDSHAKE, BitToUserHandshake.class) // user to bit
         .add(RpcType.RUN_QUERY, RunQuery.class, RpcType.QUERY_HANDLE, QueryId.class) // user to bit

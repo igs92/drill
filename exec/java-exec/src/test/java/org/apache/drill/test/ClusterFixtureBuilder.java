@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ZookeeperHelper;
 import org.apache.drill.exec.server.options.OptionDefinition;
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
@@ -214,12 +215,12 @@ public class ClusterFixtureBuilder {
     usingZk = true;
 
     // Using ZK. Turn refresh wait back on.
-    return configProperty(ExecConstants.ZK_REFRESH, DEFAULT_ZK_REFRESH);
+    return configProperty(ExecOpt.ZK_REFRESH.key, DEFAULT_ZK_REFRESH);
   }
 
   public ClusterFixtureBuilder withRemoteZk(String connStr) {
     usingZk = true;
-    return configProperty(ExecConstants.ZK_CONNECTION, connStr);
+    return configProperty(ExecOpt.ZK_CONNECTION.key, connStr);
   }
 
   /**
@@ -235,7 +236,7 @@ public class ClusterFixtureBuilder {
     usingZk = true;
 
     // Using ZK. Turn refresh wait back on.
-    configProperty(ExecConstants.ZK_REFRESH, DEFAULT_ZK_REFRESH);
+    configProperty(ExecOpt.ZK_REFRESH.key, DEFAULT_ZK_REFRESH);
     return this;
   }
 

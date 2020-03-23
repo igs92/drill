@@ -29,6 +29,7 @@ import org.apache.drill.common.expression.FieldReference;
 import org.apache.drill.common.logical.data.Order.Ordering;
 import org.apache.drill.common.types.TypeProtos.MinorType;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.memory.BufferAllocator;
 import org.apache.drill.exec.ops.OperatorContext;
 import org.apache.drill.exec.physical.config.Sort;
@@ -555,7 +556,7 @@ public class TestSortImpl extends DrillTest {
   public void testSpill() throws Exception {
     OperatorFixture.Builder builder = OperatorFixture.builder(dirTestWatcher);
     builder.configBuilder()
-      .put(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 2);
+      .put(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 2);
     try (OperatorFixture fixture = builder.build()) {
       TupleMetadata schema = SortTestUtilities.nonNullSchema();
       SortTestFixture sortTest = new SortTestFixture(fixture) {

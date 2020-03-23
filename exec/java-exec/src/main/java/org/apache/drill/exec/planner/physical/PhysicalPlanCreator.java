@@ -27,6 +27,7 @@ import org.apache.drill.common.logical.PlanProperties.Generator.ResultMode;
 import org.apache.drill.common.logical.PlanProperties.PlanPropertiesBuilder;
 import org.apache.drill.common.logical.PlanProperties.PlanType;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.QueryContext;
 import org.apache.drill.exec.physical.PhysicalPlan;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
@@ -67,7 +68,7 @@ public class PhysicalPlanCreator {
       mq);
     final PrelCostEstimates costEstimates;
     if (!op.isBufferedOperator(context)) {
-      costEstimates = new PrelCostEstimates(context.getOptions().getLong(ExecConstants.OUTPUT_BATCH_SIZE), estimatedRowCount);
+      costEstimates = new PrelCostEstimates(ExecOpt.OUTPUT_BATCH_SIZE.longFrom(context.getOptions()), estimatedRowCount);
     } else {
       costEstimates = new PrelCostEstimates(costBase.getMemory(), estimatedRowCount);
     }

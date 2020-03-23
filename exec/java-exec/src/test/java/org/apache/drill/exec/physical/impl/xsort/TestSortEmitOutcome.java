@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.xsort;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
 import org.apache.drill.categories.OperatorTest;
 import org.apache.drill.common.expression.FieldReference;
@@ -549,7 +550,7 @@ public class TestSortEmitOutcome extends BaseTestOpBatchEmitOutcome {
   public void testSpillNotSupportedWithEmitOutcome() throws Exception {
     final OperatorFixture.Builder builder = OperatorFixture.builder(dirTestWatcher);
     // Configuration that forces Sort to spill after buffering 2 incoming batches with data
-    builder.configBuilder().put(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 2);
+    builder.configBuilder().put(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 2);
 
     final OperatorFixture fixture_local = builder.build();
 
@@ -680,7 +681,7 @@ public class TestSortEmitOutcome extends BaseTestOpBatchEmitOutcome {
   public void testSpillWithNoEmitOutcome() throws Exception {
     final OperatorFixture.Builder builder = OperatorFixture.builder(dirTestWatcher);
     // Configuration that forces Sort to spill after buffering 2 incoming batches with data
-    builder.configBuilder().put(ExecConstants.EXTERNAL_SORT_BATCH_LIMIT, 2);
+    builder.configBuilder().put(ExecOpt.EXTERNAL_SORT_BATCH_LIMIT.key, 2);
 
     final OperatorFixture fixture_local = builder.build();
 
