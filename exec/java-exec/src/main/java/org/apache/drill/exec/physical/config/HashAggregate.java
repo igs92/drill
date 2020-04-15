@@ -19,6 +19,7 @@ package org.apache.drill.exec.physical.config;
 
 import org.apache.drill.common.logical.data.NamedExpression;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.ops.QueryContext;
 import org.apache.drill.exec.physical.base.AbstractSingle;
 import org.apache.drill.exec.physical.base.PhysicalOperator;
@@ -104,7 +105,7 @@ public class HashAggregate extends AbstractSingle {
   public boolean isBufferedOperator(QueryContext queryContext) {
     // In case forced to use a single partition - do not consider this a buffered op (when memory is divided)
     return queryContext == null ||
-      1 < (int) queryContext.getOptions().getOption(ExecConstants.HASHAGG_NUM_PARTITIONS_VALIDATOR);
+      1 < ExecOpt.HASH_AGG_NUM_PARTITIONS.intFrom(queryContext.getOptions());
   }
 
   @Override

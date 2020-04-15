@@ -35,13 +35,13 @@ import java.nio.file.Paths;
 public class TestHashJoinJPPDCorrectness extends ClusterTest {
 
   private static final String ALTER_RUNTIME_FILTER_OPTION_COMMAND = "ALTER SESSION SET `" +
-    ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.key + "` = %s";
+    ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER + "` = %s";
 
   private static final String ALTER_RUNTIME_FILTER_WAITING_OPTION_COMMAND = "ALTER SESSION SET `" +
-    ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.key + "` = %s";
+    ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE + "` = %s";
 
   private static final String ALTER_RUNTIME_FILTER_WAIT_TIME_OPTION_COMMAND = "ALTER SESSION SET `" +
-    ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME_KEY + "` = %d";
+    ExecOpt.HASH_JOIN_RUNTIME_FILTER_MAX_WAITING_TIME + "` = %d";
 
   private static final String ALTER_RUNTIME_FILTER_ENABLE_AND_WAIT_OPTION_COMMAND =
     String.format("%s;%s;%s", ALTER_RUNTIME_FILTER_OPTION_COMMAND, ALTER_RUNTIME_FILTER_WAITING_OPTION_COMMAND,
@@ -61,7 +61,7 @@ public class TestHashJoinJPPDCorrectness extends ClusterTest {
   @After
   public void tearDown() {
     client.resetSession(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.key);
-    client.resetSession(ExecConstants.HASHJOIN_RUNTIME_FILTER_WAITING_ENABLE_KEY);
+    client.resetSession(ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.key);
   }
 
   /**

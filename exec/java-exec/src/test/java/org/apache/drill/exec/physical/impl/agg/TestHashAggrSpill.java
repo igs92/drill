@@ -28,6 +28,7 @@ import org.apache.drill.categories.OperatorTest;
 import org.apache.drill.categories.SlowTest;
 import org.apache.drill.common.exceptions.UserRemoteException;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.physical.impl.aggregate.HashAggTemplate;
 import org.apache.drill.exec.planner.physical.PlannerSettings;
 import org.apache.drill.exec.proto.UserBitShared;
@@ -62,7 +63,7 @@ public class TestHashAggrSpill extends DrillTest {
                          String sql, long expectedRows, int cycle, int fromPart, int toPart) throws Exception {
     ClusterFixtureBuilder builder = ClusterFixture.builder(dirTestWatcher)
       .sessionOption(ExecConstants.HASHAGG_MAX_MEMORY_KEY,maxMem)
-      .sessionOption(ExecConstants.HASHAGG_NUM_PARTITIONS_KEY,numPartitions)
+      .sessionOption(ExecOpt.HASH_AGG_NUM_PARTITIONS.key, numPartitions)
       .sessionOption(ExecConstants.HASHAGG_MIN_BATCHES_PER_PARTITION_KEY,minBatches)
       .configProperty(ExecConstants.SYS_STORE_PROVIDER_LOCAL_ENABLE_WRITE, false)
       .sessionOption(PlannerSettings.FORCE_2PHASE_AGGR_KEY,true)

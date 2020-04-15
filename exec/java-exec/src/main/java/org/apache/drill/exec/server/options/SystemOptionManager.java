@@ -45,6 +45,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.apache.drill.exec.server.options.OptionDefinition.def;
+import static org.apache.drill.exec.server.options.OptionDefinition.defBuilder;
+import static org.apache.drill.exec.server.options.OptionValue.AccessibleScopes.SESSION_AND_QUERY;
+import static org.apache.drill.exec.server.options.OptionValue.AccessibleScopes.SYSTEM;
+import static org.apache.drill.exec.server.options.OptionValue.AccessibleScopes.SYSTEM_AND_SESSION;
+
 /**
  * <p>
  * {@link OptionManager} that holds options within
@@ -75,6 +81,7 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
 
   /**
    * Creates the {@code OptionDefinitions} to be registered with the {@link SystemOptionManager}.
+   *
    * @return A map
    */
   public static CaseInsensitiveMap<OptionDefinition> createDefaultOptionDefinitions() {
@@ -82,253 +89,270 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
     // compatibility, we need to keep the old options in the table to avoid
     // failures if users reference the options. So, ignore deprecation warnings
     // here.
-    @SuppressWarnings("deprecation")
-    final OptionDefinition[] definitions = new OptionDefinition[]{
-      new OptionDefinition(PlannerSettings.CONSTANT_FOLDING),
-      new OptionDefinition(PlannerSettings.EXCHANGE),
-      new OptionDefinition(PlannerSettings.HASHAGG),
-      new OptionDefinition(PlannerSettings.STREAMAGG),
-      new OptionDefinition(PlannerSettings.TOPN, new OptionMetaData(OptionValue.AccessibleScopes.ALL, false, true)),
-      new OptionDefinition(PlannerSettings.HASHJOIN),
-      new OptionDefinition(PlannerSettings.SEMIJOIN),
-      new OptionDefinition(PlannerSettings.MERGEJOIN),
-      new OptionDefinition(PlannerSettings.NESTEDLOOPJOIN),
-      new OptionDefinition(PlannerSettings.MULTIPHASE),
-      new OptionDefinition(PlannerSettings.BROADCAST),
-      new OptionDefinition(PlannerSettings.BROADCAST_THRESHOLD),
-      new OptionDefinition(PlannerSettings.BROADCAST_FACTOR),
-      new OptionDefinition(PlannerSettings.NESTEDLOOPJOIN_FACTOR),
-      new OptionDefinition(PlannerSettings.NLJOIN_FOR_SCALAR),
-      new OptionDefinition(PlannerSettings.JOIN_ROW_COUNT_ESTIMATE_FACTOR),
-      new OptionDefinition(PlannerSettings.MUX_EXCHANGE),
-      new OptionDefinition(PlannerSettings.ORDERED_MUX_EXCHANGE),
-      new OptionDefinition(PlannerSettings.DEMUX_EXCHANGE),
-      new OptionDefinition(PlannerSettings.PRODUCER_CONSUMER),
-      new OptionDefinition(PlannerSettings.PRODUCER_CONSUMER_QUEUE_SIZE),
-      new OptionDefinition(PlannerSettings.HASH_SINGLE_KEY),
-      new OptionDefinition(PlannerSettings.IDENTIFIER_MAX_LENGTH),
-      new OptionDefinition(PlannerSettings.HASH_JOIN_SWAP),
-      new OptionDefinition(PlannerSettings.HASH_JOIN_SWAP_MARGIN_FACTOR),
-      new OptionDefinition(PlannerSettings.PARTITION_SENDER_THREADS_FACTOR),
-      new OptionDefinition(PlannerSettings.PARTITION_SENDER_MAX_THREADS),
-      new OptionDefinition(PlannerSettings.PARTITION_SENDER_SET_THREADS),
-      new OptionDefinition(PlannerSettings.ENABLE_DECIMAL_DATA_TYPE),
-      new OptionDefinition(PlannerSettings.HEP_OPT),
-      new OptionDefinition(PlannerSettings.PLANNER_MEMORY_LIMIT),
-      new OptionDefinition(PlannerSettings.HEP_PARTITION_PRUNING),
-      new OptionDefinition(PlannerSettings.ROWKEYJOIN_CONVERSION),
-      new OptionDefinition(PlannerSettings.ROWKEYJOIN_CONVERSION_USING_HASHJOIN),
-      new OptionDefinition(PlannerSettings.ROWKEYJOIN_CONVERSION_SELECTIVITY_THRESHOLD),
-      new OptionDefinition(PlannerSettings.FILTER_MIN_SELECTIVITY_ESTIMATE_FACTOR),
-      new OptionDefinition(PlannerSettings.FILTER_MAX_SELECTIVITY_ESTIMATE_FACTOR),
-      new OptionDefinition(PlannerSettings.TYPE_INFERENCE),
-      new OptionDefinition(PlannerSettings.IN_SUBQUERY_THRESHOLD),
-      new OptionDefinition(PlannerSettings.UNIONALL_DISTRIBUTE),
-      new OptionDefinition(PlannerSettings.PARQUET_ROWGROUP_FILTER_PUSHDOWN_PLANNING),
-      new OptionDefinition(PlannerSettings.PARQUET_ROWGROUP_FILTER_PUSHDOWN_PLANNING_THRESHOLD),
-      new OptionDefinition(PlannerSettings.QUOTING_IDENTIFIERS),
-      new OptionDefinition(PlannerSettings.JOIN_OPTIMIZATION),
-      new OptionDefinition(PlannerSettings.ENABLE_UNNEST_LATERAL),
-      new OptionDefinition(PlannerSettings.FORCE_2PHASE_AGGR), // for testing
-      new OptionDefinition(PlannerSettings.STATISTICS_USE),
-      new OptionDefinition(PlannerSettings.STATISTICS_MULTICOL_NDV_ADJUST_FACTOR),
-      new OptionDefinition(ExecOpt.HASH_JOIN_PARTITIONS_COUNT.validator),
-      new OptionDefinition(ExecOpt.HASH_JOIN_MAX_MEMORY.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
-      new OptionDefinition(ExecOpt.HASH_JOIN_ROWS_IN_BATCH.validator),
-      new OptionDefinition(ExecOpt.HASH_JOIN_MAX_BATCHES_IN_MEMORY.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, false, true)),
-      new OptionDefinition(ExecOpt.HASH_JOIN_FALLBACK_ENABLED.validator),
-      new OptionDefinition(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.validator),
-      new OptionDefinition(ExecOpt.HASH_JOIN_BLOOM_FILTER_MAX_SIZE.validator),
-      new OptionDefinition(ExecOpt.HASH_JOIN_BLOOM_FILTER_FPP.validator),
-      new OptionDefinition(ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME),
-      new OptionDefinition(ExecConstants.HASHJOIN_ENABLE_RUNTIME_FILTER_WAITING),
-      // ------------------------------------------- Index planning related options BEGIN --------------------------------------------------------------
-      new OptionDefinition(PlannerSettings.USE_SIMPLE_OPTIMIZER),
-      new OptionDefinition(PlannerSettings.INDEX_PLANNING),
-      new OptionDefinition(PlannerSettings.ENABLE_STATS),
-      new OptionDefinition(PlannerSettings.DISABLE_FULL_TABLE_SCAN),
-      new OptionDefinition(PlannerSettings.INDEX_MAX_CHOSEN_INDEXES_PER_TABLE),
-      new OptionDefinition(PlannerSettings.INDEX_FORCE_SORT_NONCOVERING),
-      new OptionDefinition(PlannerSettings.INDEX_USE_HASHJOIN_NONCOVERING),
-      new OptionDefinition(PlannerSettings.INDEX_COVERING_SELECTIVITY_THRESHOLD),
-      new OptionDefinition(PlannerSettings.INDEX_NONCOVERING_SELECTIVITY_THRESHOLD),
-      new OptionDefinition(PlannerSettings.INDEX_ROWKEYJOIN_COST_FACTOR),
-      new OptionDefinition(PlannerSettings.INDEX_STATS_ROWCOUNT_SCALING_FACTOR),
-      // TODO: Deprecate the following 2 (also in PlannerSettings.java)
-      new OptionDefinition(PlannerSettings.INDEX_PREFER_INTERSECT_PLANS),
-      new OptionDefinition(PlannerSettings.INDEX_MAX_INDEXES_TO_INTERSECT),
-      // ------------------------------------------- Index planning related options END   --------------------------------------------------------------
-      new OptionDefinition(ExecConstants.HASHAGG_NUM_PARTITIONS_VALIDATOR),
-      new OptionDefinition(ExecConstants.HASHAGG_MAX_MEMORY_VALIDATOR),
-      new OptionDefinition(ExecConstants.HASHAGG_MIN_BATCHES_PER_PARTITION_VALIDATOR), // for tuning
-      new OptionDefinition(ExecConstants.HASHAGG_USE_MEMORY_PREDICTION_VALIDATOR), // for testing
-      new OptionDefinition(ExecConstants.HASHAGG_FALLBACK_ENABLED_VALIDATOR), // for enable/disable unbounded HashAgg
-      new OptionDefinition(ExecConstants.CAST_EMPTY_STRING_TO_NULL_OPTION),
-      new OptionDefinition(ExecConstants.OUTPUT_FORMAT_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_BLOCK_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_WRITER_USE_SINGLE_FS_BLOCK_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGE_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_DICT_PAGE_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_WRITER_COMPRESSION_TYPE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_WRITER_ENABLE_DICTIONARY_ENCODING_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_WRITER_USE_PRIMITIVE_TYPES_FOR_DECIMALS_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_WRITER_LOGICAL_TYPE_FOR_DECIMALS_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_VECTOR_FILL_THRESHOLD_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_VECTOR_FILL_CHECK_THRESHOLD_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_RECORD_READER_IMPLEMENTATION_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_ASYNC_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_QUEUE_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_ENFORCETOTALSIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_COLUMNREADER_ASYNC_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_USE_BUFFERED_READ_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_BUFFER_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_PAGEREADER_USE_FADVISE_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_READER_INT96_AS_TIMESTAMP_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_READER_STRINGS_SIGNED_MIN_MAX_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_FLAT_READER_BULK_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_FLAT_BATCH_NUM_RECORDS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.PARQUET_FLAT_BATCH_MEMORY_SIZE_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.PARQUET_COMPLEX_BATCH_NUM_RECORDS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.PARTITIONER_MEMORY_REDUCTION_THRESHOLD_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_READER_ALL_TEXT_MODE_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_WRITER_NAN_INF_NUMBERS_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_READER_NAN_INF_NUMBERS_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_READER_ESCAPE_ANY_CHAR_VALIDATOR),
-      new OptionDefinition(ExecConstants.STORE_TABLE_USE_SCHEMA_FILE_VALIDATOR),
-      new OptionDefinition(ExecConstants.ENABLE_UNION_TYPE),
-      new OptionDefinition(ExecConstants.TEXT_ESTIMATED_ROW_SIZE),
-      new OptionDefinition(ExecConstants.TEXT_WRITER_ADD_HEADER_VALIDATOR),
-      new OptionDefinition(ExecConstants.TEXT_WRITER_FORCE_QUOTES_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_EXTENDED_TYPES),
-      new OptionDefinition(ExecConstants.JSON_WRITER_UGLIFY),
-      new OptionDefinition(ExecConstants.JSON_WRITER_SKIPNULLFIELDS),
-      new OptionDefinition(ExecConstants.JSON_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_SKIP_MALFORMED_RECORDS_VALIDATOR),
-      new OptionDefinition(ExecConstants.JSON_READER_PRINT_INVALID_RECORDS_LINE_NOS_FLAG_VALIDATOR),
-      new OptionDefinition(ExecConstants.FILESYSTEM_PARTITION_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.MONGO_READER_ALL_TEXT_MODE_VALIDATOR),
-      new OptionDefinition(ExecConstants.MONGO_READER_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
-      new OptionDefinition(ExecConstants.MONGO_BSON_RECORD_READER_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_READER_ALL_TEXT_MODE_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_RECORD_READER_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_POLL_TIMEOUT_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_READER_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_SKIP_MALFORMED_RECORDS_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_READER_NAN_INF_NUMBERS_VALIDATOR),
-      new OptionDefinition(ExecConstants.KAFKA_READER_ESCAPE_ANY_CHAR_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_OPTIMIZE_SCAN_WITH_NATIVE_READERS_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_OPTIMIZE_PARQUET_SCAN_WITH_NATIVE_READER_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_OPTIMIZE_MAPRDB_JSON_SCAN_WITH_NATIVE_READER_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_READ_MAPRDB_JSON_TIMESTAMP_WITH_TIMEZONE_OFFSET_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_MAPRDB_JSON_ALL_TEXT_MODE_VALIDATOR),
-      new OptionDefinition(ExecConstants.HIVE_CONF_PROPERTIES_VALIDATOR),
-      new OptionDefinition(ExecConstants.SLICE_TARGET_OPTION),
-      new OptionDefinition(ExecConstants.AFFINITY_FACTOR),
-      new OptionDefinition(ExecConstants.MAX_WIDTH_GLOBAL),
-      new OptionDefinition(ExecConstants.MAX_WIDTH_PER_NODE),
-      new OptionDefinition(ExecConstants.ENABLE_QUEUE),
-      new OptionDefinition(ExecConstants.LARGE_QUEUE_SIZE),
-      new OptionDefinition(ExecConstants.QUEUE_THRESHOLD_SIZE),
-      new OptionDefinition(ExecConstants.QUEUE_TIMEOUT),
-      new OptionDefinition(ExecConstants.SMALL_QUEUE_SIZE),
-      new OptionDefinition(ExecConstants.QUEUE_MEMORY_RESERVE, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.QUEUE_MEMORY_RATIO, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.MIN_HASH_TABLE_SIZE),
-      new OptionDefinition(ExecConstants.MAX_HASH_TABLE_SIZE),
-      new OptionDefinition(ExecConstants.EARLY_LIMIT0_OPT),
-      new OptionDefinition(ExecConstants.LATE_LIMIT0_OPT),
-      new OptionDefinition(ExecConstants.ENABLE_MEMORY_ESTIMATION),
-      new OptionDefinition(ExecConstants.MAX_QUERY_MEMORY_PER_NODE),
-      new OptionDefinition(ExecConstants.PERCENT_MEMORY_PER_QUERY),
-      new OptionDefinition(ExecConstants.MIN_MEMORY_PER_BUFFERED_OP),
-      new OptionDefinition(ExecConstants.NON_BLOCKING_OPERATORS_MEMORY),
-      new OptionDefinition(ExecConstants.HASH_JOIN_TABLE_FACTOR),
-      new OptionDefinition(ExecOpt.HASH_JOIN_HASHTABLE_CALC_TYPE.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecOpt.HASH_JOIN_SAFETY_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecOpt.HASH_JOIN_HASH_DOUBLE_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecOpt.HASH_JOIN_FRAGMENTATION_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.HASH_AGG_TABLE_FACTOR),
-      new OptionDefinition(ExecConstants.AVERAGE_FIELD_WIDTH),
-      new OptionDefinition(ExecConstants.NEW_VIEW_DEFAULT_PERMS_VALIDATOR),
-      new OptionDefinition(ExecConstants.CTAS_PARTITIONING_HASH_DISTRIBUTE_VALIDATOR),
-      new OptionDefinition(ExecConstants.ADMIN_USERS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.ADMIN_USER_GROUPS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.IMPERSONATION_POLICY_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ClassCompilerSelector.JAVA_COMPILER_VALIDATOR),
-      new OptionDefinition(ClassCompilerSelector.JAVA_COMPILER_JANINO_MAXSIZE),
-      new OptionDefinition(ClassCompilerSelector.JAVA_COMPILER_DEBUG),
-      new OptionDefinition(ExecConstants.ENABLE_VERBOSE_ERRORS),
-      new OptionDefinition(ExecConstants.ENABLE_WINDOW_FUNCTIONS_VALIDATOR),
-      new OptionDefinition(ExecConstants.SCALAR_REPLACEMENT_VALIDATOR),
-      new OptionDefinition(ExecConstants.ENABLE_NEW_TEXT_READER),
-      new OptionDefinition(ExecConstants.ENABLE_V3_TEXT_READER),
-      new OptionDefinition(ExecConstants.SKIP_RUNTIME_ROWGROUP_PRUNING),
-      new OptionDefinition(ExecConstants.MIN_READER_WIDTH),
-      new OptionDefinition(ExecConstants.ENABLE_BULK_LOAD_TABLE_LIST),
-      new OptionDefinition(ExecConstants.BULK_LOAD_TABLE_LIST_BULK_SIZE),
-      new OptionDefinition(ExecConstants.WEB_LOGS_MAX_LINES_VALIDATOR),
-      new OptionDefinition(ExecConstants.WEB_DISPLAY_FORMAT_TIMESTAMP_VALIDATOR),
-      new OptionDefinition(ExecConstants.WEB_DISPLAY_FORMAT_DATE_VALIDATOR),
-      new OptionDefinition(ExecConstants.WEB_DISPLAY_FORMAT_TIME_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_FILENAME_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_SUFFIX_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_FQN_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_FILEPATH_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_ROW_GROUP_INDEX_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_ROW_GROUP_START_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_ROW_GROUP_LENGTH_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_LAST_MODIFIED_TIME_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.IMPLICIT_PROJECT_METADATA_COLUMN_LABEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.CODE_GEN_EXP_IN_METHOD_SIZE_VALIDATOR),
-      new OptionDefinition(ExecConstants.CREATE_PREPARE_STATEMENT_TIMEOUT_MILLIS_VALIDATOR),
-      new OptionDefinition(ExecConstants.DYNAMIC_UDF_SUPPORT_ENABLED_VALIDATOR,  new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.ENABLE_QUERY_PROFILE_VALIDATOR),
-      new OptionDefinition(ExecConstants.SKIP_SESSION_QUERY_PROFILE_VALIDATOR),
-      new OptionDefinition(ExecConstants.QUERY_PROFILE_DEBUG_VALIDATOR),
-      new OptionDefinition(ExecConstants.USE_DYNAMIC_UDFS),
-      new OptionDefinition(ExecConstants.QUERY_TRANSIENT_STATE_UPDATE),
-      new OptionDefinition(ExecConstants.PERSISTENT_TABLE_UMASK_VALIDATOR),
-      new OptionDefinition(ExecConstants.CPU_LOAD_AVERAGE),
-      new OptionDefinition(ExecConstants.ENABLE_VECTOR_VALIDATOR),
-      new OptionDefinition(ExecConstants.ENABLE_ITERATOR_VALIDATOR),
-      new OptionDefinition(ExecOpt.OUTPUT_BATCH_SIZE.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_SIZE_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_FG_SIZE_VALIDATOR,new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecConstants.STATS_LOGGING_BATCH_OPERATOR_VALIDATOR,new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, true, true)),
-      new OptionDefinition(ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, false)),
-      new OptionDefinition(ExecOpt.FRAG_RUNNER_RPC_TIMEOUT.validator, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM, true, true)),
-      new OptionDefinition(ExecConstants.LIST_FILES_RECURSIVELY_VALIDATOR),
-      new OptionDefinition(ExecConstants.QUERY_ROWKEYJOIN_BATCHSIZE),
-      new OptionDefinition(ExecConstants.RETURN_RESULT_SET_FOR_DDL_VALIDATOR),
-      new OptionDefinition(ExecConstants.HLL_ACCURACY_VALIDATOR),
-      new OptionDefinition(ExecConstants.DETERMINISTIC_SAMPLING_VALIDATOR),
-      new OptionDefinition(ExecConstants.NDV_BLOOM_FILTER_ELEMENTS_VALIDATOR),
-      new OptionDefinition(ExecConstants.NDV_BLOOM_FILTER_FPOS_PROB_VALIDATOR),
-      new OptionDefinition(ExecConstants.RM_QUERY_TAGS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SESSION_AND_QUERY, false, false)),
-      new OptionDefinition(ExecConstants.RM_QUEUES_WAIT_FOR_PREFERRED_NODES_VALIDATOR),
-      new OptionDefinition(ExecConstants.TDIGEST_COMPRESSION_VALIDATOR),
-      new OptionDefinition(ExecConstants.QUERY_MAX_ROWS_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.ALL, true, false)),
-      new OptionDefinition(ExecConstants.METASTORE_ENABLED_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_METADATA_STORE_DEPTH_LEVEL_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_USE_SCHEMA_METADATA_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_USE_STATISTICS_METADATA_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_CTAS_AUTO_COLLECT_METADATA_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_FALLBACK_TO_FILE_METADATA_VALIDATOR),
-      new OptionDefinition(ExecConstants.METASTORE_RETRIEVAL_RETRY_ATTEMPTS_VALIDATOR),
-      new OptionDefinition(ExecConstants.PARQUET_READER_ENABLE_MAP_SUPPORT_VALIDATOR, new OptionMetaData(OptionValue.AccessibleScopes.SYSTEM_AND_SESSION, false, false)),
-      new OptionDefinition(ExecConstants.ENABLE_DYNAMIC_CREDIT_BASED_FC_VALIDATOR)
+    @SuppressWarnings("deprecation") final OptionDefinition[] definitions = new OptionDefinition[]{
+        def(PlannerSettings.CONSTANT_FOLDING),
+        def(PlannerSettings.EXCHANGE),
+        def(PlannerSettings.HASHAGG),
+        def(PlannerSettings.STREAMAGG),
+        defBuilder(PlannerSettings.TOPN).internal().build(),
+        def(PlannerSettings.HASHJOIN),
+        def(PlannerSettings.SEMIJOIN),
+        def(PlannerSettings.MERGEJOIN),
+        def(PlannerSettings.NESTEDLOOPJOIN),
+        def(PlannerSettings.MULTIPHASE),
+        def(PlannerSettings.BROADCAST),
+        def(PlannerSettings.BROADCAST_THRESHOLD),
+        def(PlannerSettings.BROADCAST_FACTOR),
+        def(PlannerSettings.NESTEDLOOPJOIN_FACTOR),
+        def(PlannerSettings.NLJOIN_FOR_SCALAR),
+        def(PlannerSettings.JOIN_ROW_COUNT_ESTIMATE_FACTOR),
+        def(PlannerSettings.MUX_EXCHANGE),
+        def(PlannerSettings.ORDERED_MUX_EXCHANGE),
+        def(PlannerSettings.DEMUX_EXCHANGE),
+        def(PlannerSettings.PRODUCER_CONSUMER),
+        def(PlannerSettings.PRODUCER_CONSUMER_QUEUE_SIZE),
+        def(PlannerSettings.HASH_SINGLE_KEY),
+        def(PlannerSettings.IDENTIFIER_MAX_LENGTH),
+        def(PlannerSettings.HASH_JOIN_SWAP),
+        def(PlannerSettings.HASH_JOIN_SWAP_MARGIN_FACTOR),
+        def(PlannerSettings.PARTITION_SENDER_THREADS_FACTOR),
+        def(PlannerSettings.PARTITION_SENDER_MAX_THREADS),
+        def(PlannerSettings.PARTITION_SENDER_SET_THREADS),
+        def(PlannerSettings.ENABLE_DECIMAL_DATA_TYPE),
+        def(PlannerSettings.HEP_OPT),
+        def(PlannerSettings.PLANNER_MEMORY_LIMIT),
+        def(PlannerSettings.HEP_PARTITION_PRUNING),
+        def(PlannerSettings.ROWKEYJOIN_CONVERSION),
+        def(PlannerSettings.ROWKEYJOIN_CONVERSION_USING_HASHJOIN),
+        def(PlannerSettings.ROWKEYJOIN_CONVERSION_SELECTIVITY_THRESHOLD),
+        def(PlannerSettings.FILTER_MIN_SELECTIVITY_ESTIMATE_FACTOR),
+        def(PlannerSettings.FILTER_MAX_SELECTIVITY_ESTIMATE_FACTOR),
+        def(PlannerSettings.TYPE_INFERENCE),
+        def(PlannerSettings.IN_SUBQUERY_THRESHOLD),
+        def(PlannerSettings.UNIONALL_DISTRIBUTE),
+        def(PlannerSettings.PARQUET_ROWGROUP_FILTER_PUSHDOWN_PLANNING),
+        def(PlannerSettings.PARQUET_ROWGROUP_FILTER_PUSHDOWN_PLANNING_THRESHOLD),
+        def(PlannerSettings.QUOTING_IDENTIFIERS),
+        def(PlannerSettings.JOIN_OPTIMIZATION),
+        def(PlannerSettings.ENABLE_UNNEST_LATERAL),
+        def(PlannerSettings.FORCE_2PHASE_AGGR), // for testing
+        def(PlannerSettings.STATISTICS_USE),
+        def(PlannerSettings.STATISTICS_MULTICOL_NDV_ADJUST_FACTOR),
+        def(ExecOpt.HASH_JOIN_PARTITIONS_COUNT),
+        defBuilder(ExecOpt.HASH_JOIN_MAX_MEMORY).scopes(SYSTEM).adminOnly().internal().build(),
+        def(ExecOpt.HASH_JOIN_ROWS_IN_BATCH.validator),
+        defBuilder(ExecOpt.HASH_JOIN_MAX_BATCHES_IN_MEMORY).scopes(SYSTEM).internal().build(),
+        def(ExecOpt.HASH_JOIN_FALLBACK_ENABLED.validator),
+        def(ExecOpt.HASH_JOIN_ENABLE_RUNTIME_FILTER.validator),
+        def(ExecOpt.HASH_JOIN_BLOOM_FILTER_MAX_SIZE.validator),
+        def(ExecOpt.HASH_JOIN_BLOOM_FILTER_FPP.validator),
+        def(ExecOpt.HASH_JOIN_RUNTIME_FILTER_MAX_WAITING_TIME.validator),
+        def(ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.validator),
+        // ------------------------------------------- Index planning related options BEGIN --------------------------------------------------------------
+        def(PlannerSettings.USE_SIMPLE_OPTIMIZER),
+        def(PlannerSettings.INDEX_PLANNING),
+        def(PlannerSettings.ENABLE_STATS),
+        def(PlannerSettings.DISABLE_FULL_TABLE_SCAN),
+        def(PlannerSettings.INDEX_MAX_CHOSEN_INDEXES_PER_TABLE),
+        def(PlannerSettings.INDEX_FORCE_SORT_NONCOVERING),
+        def(PlannerSettings.INDEX_USE_HASHJOIN_NONCOVERING),
+        def(PlannerSettings.INDEX_COVERING_SELECTIVITY_THRESHOLD),
+        def(PlannerSettings.INDEX_NONCOVERING_SELECTIVITY_THRESHOLD),
+        def(PlannerSettings.INDEX_ROWKEYJOIN_COST_FACTOR),
+        def(PlannerSettings.INDEX_STATS_ROWCOUNT_SCALING_FACTOR),
+        // TODO: Deprecate the following 2 (also in PlannerSettings.java)
+        def(PlannerSettings.INDEX_PREFER_INTERSECT_PLANS),
+        def(PlannerSettings.INDEX_MAX_INDEXES_TO_INTERSECT),
+        // ------------------------------------------- Index planning related options END   --------------------------------------------------------------
+        def(ExecOpt.HASH_AGG_NUM_PARTITIONS),
+        def(ExecConstants.HASHAGG_MAX_MEMORY_VALIDATOR),
+        def(ExecConstants.HASHAGG_MIN_BATCHES_PER_PARTITION_VALIDATOR), // for tuning
+        def(ExecConstants.HASHAGG_USE_MEMORY_PREDICTION_VALIDATOR), // for testing
+        def(ExecConstants.HASHAGG_FALLBACK_ENABLED_VALIDATOR), // for enable/disable unbounded HashAgg
+        def(ExecConstants.CAST_EMPTY_STRING_TO_NULL_OPTION),
+        def(ExecConstants.OUTPUT_FORMAT_VALIDATOR),
+        def(ExecConstants.PARQUET_BLOCK_SIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_WRITER_USE_SINGLE_FS_BLOCK_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGE_SIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_DICT_PAGE_SIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_WRITER_COMPRESSION_TYPE_VALIDATOR),
+        def(ExecConstants.PARQUET_WRITER_ENABLE_DICTIONARY_ENCODING_VALIDATOR),
+        def(ExecConstants.PARQUET_WRITER_USE_PRIMITIVE_TYPES_FOR_DECIMALS_VALIDATOR),
+        def(ExecConstants.PARQUET_WRITER_LOGICAL_TYPE_FOR_DECIMALS_VALIDATOR),
+        def(ExecConstants.PARQUET_VECTOR_FILL_THRESHOLD_VALIDATOR),
+        def(ExecConstants.PARQUET_VECTOR_FILL_CHECK_THRESHOLD_VALIDATOR),
+        def(ExecConstants.PARQUET_RECORD_READER_IMPLEMENTATION_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_ASYNC_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_QUEUE_SIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_ENFORCETOTALSIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_COLUMNREADER_ASYNC_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_USE_BUFFERED_READ_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_BUFFER_SIZE_VALIDATOR),
+        def(ExecConstants.PARQUET_PAGEREADER_USE_FADVISE_VALIDATOR),
+        def(ExecConstants.PARQUET_READER_INT96_AS_TIMESTAMP_VALIDATOR),
+        def(ExecConstants.PARQUET_READER_STRINGS_SIGNED_MIN_MAX_VALIDATOR),
+        def(ExecConstants.PARQUET_FLAT_READER_BULK_VALIDATOR),
+        defBuilder(ExecConstants.PARQUET_FLAT_BATCH_NUM_RECORDS_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecConstants.PARQUET_FLAT_BATCH_MEMORY_SIZE_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION)
+            .adminOnly()
+            .internal()
+            .build(),
+        defBuilder(ExecConstants.PARQUET_COMPLEX_BATCH_NUM_RECORDS_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        def(ExecConstants.PARTITIONER_MEMORY_REDUCTION_THRESHOLD_VALIDATOR),
+        def(ExecConstants.JSON_READER_ALL_TEXT_MODE_VALIDATOR),
+        def(ExecConstants.JSON_WRITER_NAN_INF_NUMBERS_VALIDATOR),
+        def(ExecConstants.JSON_READER_NAN_INF_NUMBERS_VALIDATOR),
+        def(ExecConstants.JSON_READER_ESCAPE_ANY_CHAR_VALIDATOR),
+        def(ExecConstants.STORE_TABLE_USE_SCHEMA_FILE_VALIDATOR),
+        def(ExecConstants.ENABLE_UNION_TYPE),
+        def(ExecConstants.TEXT_ESTIMATED_ROW_SIZE),
+        def(ExecConstants.TEXT_WRITER_ADD_HEADER_VALIDATOR),
+        def(ExecConstants.TEXT_WRITER_FORCE_QUOTES_VALIDATOR),
+        def(ExecConstants.JSON_EXTENDED_TYPES),
+        def(ExecConstants.JSON_WRITER_UGLIFY),
+        def(ExecConstants.JSON_WRITER_SKIPNULLFIELDS),
+        def(ExecConstants.JSON_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
+        def(ExecConstants.JSON_SKIP_MALFORMED_RECORDS_VALIDATOR),
+        def(ExecConstants.JSON_READER_PRINT_INVALID_RECORDS_LINE_NOS_FLAG_VALIDATOR),
+        def(ExecConstants.FILESYSTEM_PARTITION_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.MONGO_READER_ALL_TEXT_MODE_VALIDATOR),
+        def(ExecConstants.MONGO_READER_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
+        def(ExecConstants.MONGO_BSON_RECORD_READER_VALIDATOR),
+        def(ExecConstants.KAFKA_READER_ALL_TEXT_MODE_VALIDATOR),
+        def(ExecConstants.KAFKA_RECORD_READER_VALIDATOR),
+        def(ExecConstants.KAFKA_POLL_TIMEOUT_VALIDATOR),
+        def(ExecConstants.KAFKA_READER_READ_NUMBERS_AS_DOUBLE_VALIDATOR),
+        def(ExecConstants.KAFKA_SKIP_MALFORMED_RECORDS_VALIDATOR),
+        def(ExecConstants.KAFKA_READER_NAN_INF_NUMBERS_VALIDATOR),
+        def(ExecConstants.KAFKA_READER_ESCAPE_ANY_CHAR_VALIDATOR),
+        def(ExecConstants.HIVE_OPTIMIZE_SCAN_WITH_NATIVE_READERS_VALIDATOR),
+        def(ExecConstants.HIVE_OPTIMIZE_PARQUET_SCAN_WITH_NATIVE_READER_VALIDATOR),
+        def(ExecConstants.HIVE_OPTIMIZE_MAPRDB_JSON_SCAN_WITH_NATIVE_READER_VALIDATOR),
+        def(ExecConstants.HIVE_READ_MAPRDB_JSON_TIMESTAMP_WITH_TIMEZONE_OFFSET_VALIDATOR),
+        def(ExecConstants.HIVE_MAPRDB_JSON_ALL_TEXT_MODE_VALIDATOR),
+        def(ExecConstants.HIVE_CONF_PROPERTIES_VALIDATOR),
+        def(ExecConstants.SLICE_TARGET_OPTION),
+        def(ExecConstants.AFFINITY_FACTOR),
+        def(ExecConstants.MAX_WIDTH_GLOBAL),
+        def(ExecConstants.MAX_WIDTH_PER_NODE),
+        def(ExecConstants.ENABLE_QUEUE),
+        def(ExecConstants.LARGE_QUEUE_SIZE),
+        def(ExecConstants.QUEUE_THRESHOLD_SIZE),
+        def(ExecConstants.QUEUE_TIMEOUT),
+        def(ExecConstants.SMALL_QUEUE_SIZE),
+        defBuilder(ExecConstants.QUEUE_MEMORY_RESERVE).scopes(SYSTEM).adminOnly().build(),
+        defBuilder(ExecConstants.QUEUE_MEMORY_RATIO).scopes(SYSTEM).adminOnly().build(),
+        def(ExecConstants.MIN_HASH_TABLE_SIZE),
+        def(ExecConstants.MAX_HASH_TABLE_SIZE),
+        def(ExecConstants.EARLY_LIMIT0_OPT),
+        def(ExecConstants.LATE_LIMIT0_OPT),
+        def(ExecConstants.ENABLE_MEMORY_ESTIMATION),
+        def(ExecConstants.MAX_QUERY_MEMORY_PER_NODE),
+        def(ExecConstants.PERCENT_MEMORY_PER_QUERY),
+        def(ExecConstants.MIN_MEMORY_PER_BUFFERED_OP),
+        def(ExecConstants.NON_BLOCKING_OPERATORS_MEMORY),
+        def(ExecConstants.HASH_JOIN_TABLE_FACTOR),
+        defBuilder(ExecOpt.HASH_JOIN_HASHTABLE_CALC_TYPE)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecOpt.HASH_JOIN_SAFETY_FACTOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecOpt.HASH_JOIN_HASH_DOUBLE_FACTOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecOpt.HASH_JOIN_FRAGMENTATION_FACTOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        def(ExecConstants.HASH_AGG_TABLE_FACTOR),
+        def(ExecConstants.AVERAGE_FIELD_WIDTH),
+        def(ExecConstants.NEW_VIEW_DEFAULT_PERMS_VALIDATOR),
+        def(ExecConstants.CTAS_PARTITIONING_HASH_DISTRIBUTE_VALIDATOR),
+        defBuilder(ExecConstants.ADMIN_USERS_VALIDATOR).scopes(SYSTEM).adminOnly().build(),
+        defBuilder(ExecConstants.ADMIN_USER_GROUPS_VALIDATOR).scopes(SYSTEM).adminOnly().build(),
+        defBuilder(ExecConstants.IMPERSONATION_POLICY_VALIDATOR).scopes(SYSTEM).adminOnly().build(),
+        def(ClassCompilerSelector.JAVA_COMPILER_VALIDATOR),
+        def(ClassCompilerSelector.JAVA_COMPILER_JANINO_MAXSIZE),
+        def(ClassCompilerSelector.JAVA_COMPILER_DEBUG),
+        def(ExecConstants.ENABLE_VERBOSE_ERRORS),
+        def(ExecConstants.ENABLE_WINDOW_FUNCTIONS_VALIDATOR),
+        def(ExecConstants.SCALAR_REPLACEMENT_VALIDATOR),
+        def(ExecConstants.ENABLE_NEW_TEXT_READER),
+        def(ExecConstants.ENABLE_V3_TEXT_READER),
+        def(ExecConstants.SKIP_RUNTIME_ROWGROUP_PRUNING),
+        def(ExecConstants.MIN_READER_WIDTH),
+        def(ExecConstants.ENABLE_BULK_LOAD_TABLE_LIST),
+        def(ExecConstants.BULK_LOAD_TABLE_LIST_BULK_SIZE),
+        def(ExecConstants.WEB_LOGS_MAX_LINES_VALIDATOR),
+        def(ExecConstants.WEB_DISPLAY_FORMAT_TIMESTAMP_VALIDATOR),
+        def(ExecConstants.WEB_DISPLAY_FORMAT_DATE_VALIDATOR),
+        def(ExecConstants.WEB_DISPLAY_FORMAT_TIME_VALIDATOR),
+        def(ExecConstants.IMPLICIT_FILENAME_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_SUFFIX_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_FQN_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_FILEPATH_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_ROW_GROUP_INDEX_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_ROW_GROUP_START_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_ROW_GROUP_LENGTH_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_LAST_MODIFIED_TIME_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.IMPLICIT_PROJECT_METADATA_COLUMN_LABEL_VALIDATOR),
+        def(ExecConstants.CODE_GEN_EXP_IN_METHOD_SIZE_VALIDATOR),
+        def(ExecConstants.CREATE_PREPARE_STATEMENT_TIMEOUT_MILLIS_VALIDATOR),
+        defBuilder(ExecConstants.DYNAMIC_UDF_SUPPORT_ENABLED_VALIDATOR).scopes(SYSTEM).adminOnly().build(),
+        def(ExecConstants.ENABLE_QUERY_PROFILE_VALIDATOR),
+        def(ExecConstants.SKIP_SESSION_QUERY_PROFILE_VALIDATOR),
+        def(ExecConstants.QUERY_PROFILE_DEBUG_VALIDATOR),
+        def(ExecConstants.USE_DYNAMIC_UDFS),
+        def(ExecConstants.QUERY_TRANSIENT_STATE_UPDATE),
+        def(ExecConstants.PERSISTENT_TABLE_UMASK_VALIDATOR),
+        def(ExecConstants.CPU_LOAD_AVERAGE),
+        def(ExecConstants.ENABLE_VECTOR_VALIDATOR),
+        def(ExecConstants.ENABLE_ITERATOR_VALIDATOR),
+        defBuilder(ExecOpt.OUTPUT_BATCH_SIZE).scopes(SYSTEM).adminOnly().build(),
+        defBuilder(ExecConstants.STATS_LOGGING_BATCH_SIZE_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecConstants.STATS_LOGGING_BATCH_FG_SIZE_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecConstants.STATS_LOGGING_BATCH_OPERATOR_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).adminOnly().internal().build(),
+        defBuilder(ExecOpt.OUTPUT_BATCH_SIZE_AVAIL_MEM_FACTOR)
+            .scopes(SYSTEM).adminOnly().build(),
+        defBuilder(ExecOpt.FRAG_RUNNER_RPC_TIMEOUT)
+            .scopes(SYSTEM).adminOnly().internal().build(),
+        def(ExecConstants.LIST_FILES_RECURSIVELY_VALIDATOR),
+        def(ExecConstants.QUERY_ROWKEYJOIN_BATCHSIZE),
+        def(ExecConstants.RETURN_RESULT_SET_FOR_DDL_VALIDATOR),
+        def(ExecConstants.HLL_ACCURACY_VALIDATOR),
+        def(ExecConstants.DETERMINISTIC_SAMPLING_VALIDATOR),
+        def(ExecConstants.NDV_BLOOM_FILTER_ELEMENTS_VALIDATOR),
+        def(ExecConstants.NDV_BLOOM_FILTER_FPOS_PROB_VALIDATOR),
+        defBuilder(ExecConstants.RM_QUERY_TAGS_VALIDATOR)
+            .scopes(SESSION_AND_QUERY).build(),
+        def(ExecConstants.RM_QUEUES_WAIT_FOR_PREFERRED_NODES_VALIDATOR),
+        def(ExecConstants.TDIGEST_COMPRESSION_VALIDATOR),
+        defBuilder(ExecConstants.QUERY_MAX_ROWS_VALIDATOR).adminOnly().build(),
+        defBuilder(ExecConstants.QUERY_MAX_ROWS_VALIDATOR).adminOnly().build(),
+        def(ExecConstants.METASTORE_ENABLED_VALIDATOR),
+        def(ExecConstants.METASTORE_METADATA_STORE_DEPTH_LEVEL_VALIDATOR),
+        def(ExecConstants.METASTORE_USE_SCHEMA_METADATA_VALIDATOR),
+        def(ExecConstants.METASTORE_USE_STATISTICS_METADATA_VALIDATOR),
+        def(ExecConstants.METASTORE_CTAS_AUTO_COLLECT_METADATA_VALIDATOR),
+        def(ExecConstants.METASTORE_FALLBACK_TO_FILE_METADATA_VALIDATOR),
+        def(ExecConstants.METASTORE_RETRIEVAL_RETRY_ATTEMPTS_VALIDATOR),
+        defBuilder(ExecConstants.PARQUET_READER_ENABLE_MAP_SUPPORT_VALIDATOR)
+            .scopes(SYSTEM_AND_SESSION).build(),
+        def(ExecConstants.ENABLE_DYNAMIC_CREDIT_BASED_FC_VALIDATOR)
     };
 
     CaseInsensitiveMap<OptionDefinition> map = Arrays.stream(definitions)
-      .collect(Collectors.toMap(
-        d -> d.getValidator().getOptionName(),
-        Function.identity(),
-        (o, n) -> n,
-        CaseInsensitiveMap::newHashMap));
+        .collect(Collectors.toMap(
+            d -> d.getValidator().getOptionName(),
+            Function.identity(),
+            (o, n) -> n,
+            CaseInsensitiveMap::newHashMap));
 
 
     if (AssertionUtil.isAssertionsEnabled()) {
-      map.put(ExecConstants.DRILLBIT_CONTROL_INJECTIONS, new OptionDefinition(ExecConstants.DRILLBIT_CONTROLS_VALIDATOR));
+      map.put(ExecConstants.DRILLBIT_CONTROL_INJECTIONS, def(ExecConstants.DRILLBIT_CONTROLS_VALIDATOR));
     }
 
     return map;
@@ -355,8 +379,8 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
                              final DrillConfig bootConfig, final CaseInsensitiveMap<OptionDefinition> definitions) {
     this.provider = provider;
     this.config = PersistentStoreConfig.newJacksonBuilder(lpPersistence.getMapper(), PersistedOptionValue.class)
-          .name("sys.options")
-          .build();
+        .name("sys.options")
+        .build();
     this.definitions = definitions;
     this.defaults = populateDefaultValues(definitions, bootConfig);
   }
@@ -419,7 +443,7 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       final OptionDefinition optionDefinition = getOptionDefinition(name);
       final PersistedOptionValue persistedOptionValue = entry.getValue();
       final OptionValue optionValue = persistedOptionValue
-        .toOptionValue(optionDefinition, OptionValue.OptionScope.SYSTEM);
+          .toOptionValue(optionDefinition, OptionValue.OptionScope.SYSTEM);
       buildList.put(name, optionValue);
     }
     return buildList.values().iterator();
@@ -444,8 +468,8 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
     OptionValue value = defaults.get(optionName);
     if (value == null) {
       throw UserException.systemError(null)
-        .addContext("Undefined default value for option: " + optionName)
-        .build(logger);
+          .addContext("Undefined default value for option: " + optionName)
+          .build(logger);
     }
     return value;
   }
@@ -480,8 +504,8 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
   public void deleteAllLocalOptions() {
     Iterable<Map.Entry<String, PersistedOptionValue>> allOptions = () -> options.getAll();
     StreamSupport.stream(allOptions.spliterator(), false)
-      .map(Entry::getKey)
-      .forEach(name -> options.delete(name)); // should be lowercase
+        .map(Entry::getKey)
+        .forEach(name -> options.delete(name)); // should be lowercase
   }
 
   private CaseInsensitiveMap<OptionValue> populateDefaultValues(Map<String, OptionDefinition> definitions, DrillConfig bootConfig) {
@@ -501,19 +525,19 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
       switch (kind) {
         case BOOLEAN:
           optionValue = OptionValue.create(type, name,
-            bootConfig.getBoolean(configName), OptionValue.OptionScope.BOOT);
+              bootConfig.getBoolean(configName), OptionValue.OptionScope.BOOT);
           break;
         case LONG:
           optionValue = OptionValue.create(type, name,
-            bootConfig.getLong(configName), OptionValue.OptionScope.BOOT);
+              bootConfig.getLong(configName), OptionValue.OptionScope.BOOT);
           break;
         case STRING:
           optionValue = OptionValue.create(type, name,
-            bootConfig.getString(configName), OptionValue.OptionScope.BOOT);
+              bootConfig.getString(configName), OptionValue.OptionScope.BOOT);
           break;
         case DOUBLE:
           optionValue = OptionValue.create(type, name,
-            bootConfig.getDouble(configName), OptionValue.OptionScope.BOOT);
+              bootConfig.getDouble(configName), OptionValue.OptionScope.BOOT);
           break;
         default:
           throw new UnsupportedOperationException();
@@ -537,8 +561,8 @@ public class SystemOptionManager extends BaseOptionManager implements AutoClosea
     final OptionDefinition definition = definitions.get(name);
     if (definition == null) {
       throw UserException.validationError()
-        .message(String.format("The option '%s' does not exist.", name.toLowerCase()))
-        .build(logger);
+          .message(String.format("The option '%s' does not exist.", name.toLowerCase()))
+          .build(logger);
     }
     return definition;
   }

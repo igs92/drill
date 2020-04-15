@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.server.options;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
 
 /**
@@ -26,12 +27,7 @@ public class OptionDefinition {
   private final OptionValidator validator;
   private final OptionMetaData metaData;
 
-  public OptionDefinition(OptionValidator validator) {
-    this.validator = Preconditions.checkNotNull(validator);
-    this.metaData = OptionMetaData.DEFAULT;
-  }
-
-  public OptionDefinition(OptionValidator validator, OptionMetaData metaData) {
+  private OptionDefinition(OptionValidator validator, OptionMetaData metaData) {
     this.validator = Preconditions.checkNotNull(validator);
     this.metaData = Preconditions.checkNotNull(metaData);
   }
@@ -42,5 +38,58 @@ public class OptionDefinition {
 
   public OptionMetaData getMetaData() {
     return metaData;
+  }
+
+  public static Builder defBuilder(ExecOpt opt) {
+    return new Builder(opt.validator);
+  }
+
+  public static Builder defBuilder(OptionValidator validator) {
+    return new Builder(validator);
+  }
+
+  public static OptionDefinition def(OptionValidator validator) {
+    return defBuilder(validator).build();
+  }
+
+  public static OptionDefinition def(ExecOpt opt) {
+    return defBuilder(opt).build();
+  }
+
+  public static class Builder {
+    private final OptionValidator validator;
+    private OptionMetaData optMeta;
+
+    public Builder(OptionValidator validator) {
+      this.validator = validator;
+      this.optMeta = OptionMetaData.DEFAULT;
+    }
+
+    public Builder scopes(OptionValue.AccessibleScopes scopes) {
+      if (optMeta.getAccessibleScopes() != scopes) {
+        optMeta = new OptionMetaData(scopes, optMeta.isAdminOnly(), optMeta.isInternal());
+      }
+      return this;
+    }
+
+    public Builder adminOnly() {
+      if (!optMeta.isAdminOnly()) {
+        optMeta = new OptionMetaData(optMeta.getAccessibleScopes(),
+            true, optMeta.isInternal());
+      }
+      return this;
+    }
+
+    public Builder internal() {
+      if (!optMeta.isInternal()) {
+        optMeta = new OptionMetaData(optMeta.getAccessibleScopes(),
+            optMeta.isAdminOnly(), true);
+      }
+      return this;
+    }
+
+    public OptionDefinition build() {
+      return new OptionDefinition(validator, optMeta);
+    }
   }
 }

@@ -17,6 +17,7 @@
  */
 package org.apache.drill.exec.physical.impl.agg;
 
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.shaded.guava.com.google.common.base.Preconditions;
 import org.apache.drill.shaded.guava.com.google.common.collect.ImmutableList;
 import org.apache.drill.shaded.guava.com.google.common.collect.Lists;
@@ -39,8 +40,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.drill.exec.ExecConstants.HASHAGG_NUM_PARTITIONS_KEY;
 
 public class TestHashAggBatch extends PhysicalOpUnitTestBase {
   public static final String FIRST_NAME_COL = "firstname";
@@ -69,7 +68,8 @@ public class TestHashAggBatch extends PhysicalOpUnitTestBase {
   // TODO remove this in order to test multiple partitions
   @Before
   public void setupSimpleSingleBatchSumTestPhase1of2() {
-    operatorFixture.getOptionManager().setLocalOption(HASHAGG_NUM_PARTITIONS_KEY, 1);
+    operatorFixture.getOptionManager()
+        .setLocalOption(ExecOpt.HASH_AGG_NUM_PARTITIONS.key, 1);
   }
 
   @Test

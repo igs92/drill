@@ -82,7 +82,7 @@ public class RuntimeFilterRecordBatch extends AbstractSingleRecordBatch<RuntimeF
     super(pop, context, incoming);
     OptionManager options = context.getOptions();
     enableRFWaiting = ExecOpt.HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE.booleanFrom(options);
-    maxWaitingTime = options.getLong(ExecConstants.HASHJOIN_RUNTIME_FILTER_MAX_WAITING_TIME_KEY);
+    maxWaitingTime = ExecOpt.HASH_JOIN_RUNTIME_FILTER_MAX_WAITING_TIME.longFrom(options);
     this.rfIdentifier = pop.getIdentifier();
   }
 

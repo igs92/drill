@@ -37,6 +37,7 @@ import org.apache.drill.common.expression.LogicalExpression;
 import org.apache.drill.common.types.TypeProtos;
 import org.apache.drill.common.types.Types;
 import org.apache.drill.exec.ExecConstants;
+import org.apache.drill.exec.ExecOpt;
 import org.apache.drill.exec.cache.VectorSerializer.Writer;
 import org.apache.drill.exec.compile.sig.RuntimeOverridden;
 import org.apache.drill.exec.exception.ClassTransformationException;
@@ -390,7 +391,7 @@ public abstract class HashAggTemplate implements HashAggregator {
     final boolean fallbackEnabled = context.getOptions().getOption(ExecConstants.HASHAGG_FALLBACK_ENABLED_KEY).bool_val;
 
     // Set the number of partitions from the configuration (raise to a power of two, if needed)
-    int numPartitions = (int)context.getOptions().getOption(ExecConstants.HASHAGG_NUM_PARTITIONS_VALIDATOR);
+    int numPartitions = ExecOpt.HASH_AGG_NUM_PARTITIONS.intFrom(context.getOptions());
     if (numPartitions == 1 && phase.is2nd()) { // 1st phase can still do early return with 1 partition
       canSpill = false;
       logger.warn("Spilling is disabled due to configuration setting of num_partitions to 1");

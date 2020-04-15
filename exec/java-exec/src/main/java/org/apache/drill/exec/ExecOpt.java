@@ -31,7 +31,6 @@ import static org.apache.drill.exec.server.options.TypeValidators.intType;
 import static org.apache.drill.exec.server.options.TypeValidators.longRange;
 import static org.apache.drill.exec.server.options.TypeValidators.positiveLong;
 
-
 public enum ExecOpt {
   ZK_RETRY_TIMES("drill.exec.zk.retry.count"),
   ZK_RETRY_DELAY("drill.exec.zk.retry.delay"),
@@ -121,7 +120,13 @@ public enum ExecOpt {
   HASH_JOIN_ENABLE_RUNTIME_FILTER("exec.hashjoin.enable.runtime_filter", booleanType()),
   HASH_JOIN_BLOOM_FILTER_MAX_SIZE("exec.hashjoin.bloom_filter.max.size", intType()),
   HASH_JOIN_BLOOM_FILTER_FPP("exec.hashjoin.bloom_filter.fpp", doubleRange(Double.MIN_VALUE, 1.0)),
-  HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE("exec.hashjoin.runtime_filter.waiting.enable", booleanType())
+  HASH_JOIN_RUNTIME_FILTER_WAITING_ENABLE("exec.hashjoin.runtime_filter.waiting.enable", booleanType()),
+  HASH_JOIN_RUNTIME_FILTER_MAX_WAITING_TIME("exec.hashjoin.runtime_filter.max.waiting.time", positiveLong(Character.MAX_VALUE)),
+
+  HASH_AGG_NUM_PARTITIONS("exec.hashagg.num_partitions", positiveLong(128)
+      .desc("Sets the initial number of internal partitions for Hash Aggregates. " +
+          "Default is 32. May reduce when memory is too small. Disables spilling if set to 1.")),
+  HASH_AGG_MAX_MEMORY("exec.hashagg.mem_limit", longRange(0, Integer.MAX_VALUE))
 
 
   /**/;
@@ -189,5 +194,10 @@ public enum ExecOpt {
 
   public boolean booleanFrom(OptionSet optionSet) {
     return optionSet.getBoolean(key);
+  }
+
+  @Override
+  public final String toString() {
+    return key;
   }
 }
